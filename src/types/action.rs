@@ -1,7 +1,7 @@
 /// Encapsulate IO actions
 
 /// A message to use for scheduling IO actions
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Action {
     /// Input device should be read
     Read,

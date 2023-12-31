@@ -28,8 +28,8 @@ impl Event {
         }
     }
 
-    pub fn get_action(&self) -> &Action {
-        &self.action
+    pub fn get_action(&self) -> Action {
+        self.action
     }
 
     pub fn get_value(&self) -> &Option<String> {
@@ -56,7 +56,7 @@ mod tests {
             .unwrap();
         let event = Event::new(Action::Read, timestamp);
 
-        assert_eq!(event.get_action(), &Action::Read);
+        assert_eq!(event.get_action(), Action::Read);
         assert_eq!(event.get_timestamp(), &timestamp);
         assert!(event.get_value().is_none());
     }
