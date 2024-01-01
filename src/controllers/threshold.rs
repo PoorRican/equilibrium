@@ -32,27 +32,25 @@ where
     O: FnMut(bool),
 {
     pub fn new(threshold: f32, input: Input<I>, output: Output<O>, interval: Duration) -> Threshold<I, O> {
-        Threshold {
+        Self {
             threshold,
             input,
             output,
             schedule: Scheduler::new(),
             interval,
             inverted: false,
-        }.schedule_first()
+        }
     }
 
-    pub fn with_time(threshold: f32, input: Input<I>, output: Output<O>, interval: Duration, time: DateTime<Utc>) -> Threshold<I, O> {
-        let mut controller = Threshold {
+    pub fn with_first(threshold: f32, input: Input<I>, output: Output<O>, interval: Duration) -> Threshold<I, O> {
+        Self {
             threshold,
             input,
             output,
             schedule: Scheduler::new(),
             interval,
             inverted: false,
-        };
-        controller.schedule_next(time);
-        controller
+        }.schedule_next(None)
     }
 
     /// Builder method to set the controller to be inverted
@@ -114,15 +112,18 @@ where
         }
     }
 
-    fn schedule_next(&mut self, time: DateTime<Utc>) {
+    /// Schedule the next read for the specified time
+    fn schedule_next_in_place(&mut self, time: DateTime<Utc>) {
         self.schedule.schedule_read(time + self.interval);
     }
 
-    /// Schedule the first read
+    /// Builder method to schedule the next read for the specified time
     ///
-    /// This is used in [`Threshold::new`] to schedule the first read
-    fn schedule_first(mut self) -> Self {
-        self.schedule_next(Utc::now());
+    /// If no time is specified, the current time will be used.
+    pub fn schedule_next<T>(mut self, time: T) -> Self
+        where T: Into<Option<DateTime<Utc>>>{
+        let time= time.into().unwrap_or_else(|| Utc::now());
+        self.schedule_next_in_place(time);
         self
     }
 }
@@ -175,31 +176,27 @@ mod tests {
         assert_eq!(controller.get_threshold(), 0.0);
         assert_eq!(controller.inverted, false);
         assert_eq!(controller.interval, Duration::seconds(1));
-        assert!(controller.schedule.has_future_events());
+        assert!(!controller.schedule.has_future_events());
     }
 
     #[test]
-    fn test_with_time() {
+    fn test_with_first() {
         let threshold = 0.0;
         let interval = Duration::seconds(1);
 
         let input = Input::new(|| String::from("0.0"));
         let output = Output::new(|_| {});
-        let time = Utc::now();
-        let controller = Threshold::with_time(
+        let controller = Threshold::with_first(
             threshold,
             input,
             output,
             interval,
-            time,
         );
 
         assert_eq!(controller.get_threshold(), 0.0);
         assert_eq!(controller.inverted, false);
         assert_eq!(controller.interval, Duration::seconds(1));
         assert!(controller.schedule.has_future_events());
-        let future_time = time + interval;
-        assert_eq!(controller.schedule.get_future_events().get(0).unwrap().get_timestamp(), &future_time);
     }
 
     #[test]
@@ -365,13 +362,12 @@ mod tests {
 
         let time = Utc::now();
 
-        let mut controller = Threshold::with_time(
+        let mut controller = Threshold::new(
             5.0,
             input,
             output,
             Duration::seconds(1),
-            time
-        );
+        ).schedule_next(time);
 
         // check default state
         assert_eq!(external_output_state.lock().unwrap().clone(), false);
@@ -424,13 +420,14 @@ mod tests {
 
         let time = Utc::now();
 
-        let mut controller = Threshold::with_time(
+        let mut controller = Threshold::new(
             5.0,
             input,
             output,
             Duration::seconds(1),
-            time
-        ).set_inverted();
+        )
+            .set_inverted()
+            .schedule_next(time);
 
         // check default state
         assert_eq!(external_output_state.lock().unwrap().clone(), false);

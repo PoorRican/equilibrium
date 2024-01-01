@@ -48,10 +48,9 @@ enum State {
 ///     increase_output,
 ///     decrease_output,
 ///     interval,
-/// );
+/// ).schedule_next(None);
 ///
 /// controller.poll(Utc::now());
-/// panic!("");
 /// ```
 pub struct BidirectionalThreshold<I, O, O2>
     where
@@ -74,6 +73,10 @@ impl<I, O, O2> BidirectionalThreshold<I, O, O2>
         O: FnMut(bool),
         O2: FnMut(bool),
 {
+    /// Create a new controller without scheduling the first read
+    ///
+    /// [`BidirectionalThreshold::schedule_next()`] or [`BidirectionalThreshold::schedule_fist()`]
+    /// must be called in this function.
     pub fn new(
         threshold: f32,
         tolerance: f32,
@@ -90,20 +93,19 @@ impl<I, O, O2> BidirectionalThreshold<I, O, O2>
             decrease_output,
             interval,
             schedule: Scheduler::new(),
-        }.schedule_first()
+        }
     }
 
     /// Create a new controller with a specific time as the first read time
-    pub fn with_time(
+    pub fn with_first(
         threshold: f32,
         tolerance: f32,
         input: Input<I>,
         increase_output: Output<O>,
         decrease_output: Output<O2>,
         interval: Duration,
-        time: DateTime<Utc>,
     ) -> Self {
-        let mut control = Self {
+        Self {
             threshold,
             tolerance,
             input,
@@ -111,9 +113,7 @@ impl<I, O, O2> BidirectionalThreshold<I, O, O2>
             decrease_output,
             interval,
             schedule: Scheduler::new(),
-        };
-        control.schedule_next(time);
-        control
+        }.schedule_next(None)
     }
 
     /// Read the input and determine the state of the controller
@@ -147,15 +147,17 @@ impl<I, O, O2> BidirectionalThreshold<I, O, O2>
     }
 
     /// Schedule the next read for the specified time
-    fn schedule_next(&mut self, time: DateTime<Utc>) {
+    fn schedule_next_in_place(&mut self, time: DateTime<Utc>) {
         self.schedule.schedule_read(time + self.interval);
     }
 
-    /// Schedule the first read for the current time
+    /// Builder method to schedule the next read for the specified time
     ///
-    /// This is called in [`BidirectionalThreshold::new`].
-    fn schedule_first(mut self) -> Self {
-        self.schedule_next(Utc::now());
+    /// If no time is specified, the current time will be used.
+    pub fn schedule_next<T>(mut self, time: T) -> Self
+    where T: Into<Option<DateTime<Utc>>>{
+        let time= time.into().unwrap_or_else(|| Utc::now());
+        self.schedule_next_in_place(time);
         self
     }
 }
@@ -176,7 +178,7 @@ impl<I, O, O2> Controller for BidirectionalThreshold<I, O, O2>
                         State::BelowThreshold => self.handle_below_threshold(),
                         State::WithinTolerance => self.handle_within_tolerance(),
                     }
-                    self.schedule_next(time);
+                    self.schedule_next_in_place(time);
                 }
                 _ => {}
             }
@@ -213,7 +215,7 @@ mod tests {
         assert_eq!(controller.tolerance, tolerance);
         assert_eq!(controller.interval, interval);
 
-        assert!(controller.schedule.has_future_events());
+        assert!(!controller.schedule.has_future_events());
 
         assert!(controller.increase_output.get_state().is_none());
         assert!(controller.decrease_output.get_state().is_none());
@@ -229,15 +231,13 @@ mod tests {
         let decrease_output = Output::new(|_| {});
         let interval = chrono::Duration::seconds(1);
 
-        let time = Utc::now();
-        let controller = BidirectionalThreshold::with_time(
+        let controller = BidirectionalThreshold::with_first(
             threshold,
             tolerance,
             input,
             increase_output,
             decrease_output,
             interval,
-            time,
         );
 
         assert_eq!(controller.threshold, threshold);
@@ -245,8 +245,6 @@ mod tests {
         assert_eq!(controller.interval, interval);
 
         assert!(controller.schedule.has_future_events());
-        let future_time = time + interval;
-        assert_eq!(controller.schedule.get_future_events().get(0).unwrap().get_timestamp(), &future_time);
     }
 
     #[test]
@@ -266,7 +264,7 @@ mod tests {
             increase_output,
             decrease_output,
             interval,
-        ).schedule_first();
+        );
 
         controller.handle_above_threshold();
 
@@ -291,7 +289,7 @@ mod tests {
             increase_output,
             decrease_output,
             interval,
-        ).schedule_first();
+        );
 
         controller.handle_below_threshold();
 
@@ -316,7 +314,7 @@ mod tests {
             increase_output,
             decrease_output,
             interval,
-        ).schedule_first();
+        );
 
         controller.handle_within_tolerance();
 
@@ -344,15 +342,14 @@ mod tests {
         let interval = Duration::seconds(1);
 
         let time = Utc::now();
-        let mut controller = BidirectionalThreshold::with_time(
+        let mut controller = BidirectionalThreshold::new(
             threshold,
             tolerance,
             input,
             increase_output,
             decrease_output,
             interval,
-            time,
-        );
+        ).schedule_next(time);
 
         // check default state
         assert!(controller.increase_output.get_state().is_none());
