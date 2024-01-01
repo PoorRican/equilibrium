@@ -24,6 +24,12 @@ where F: Fn() -> String {
     }
 }
 
+impl Default for Input<fn() -> String> {
+    fn default() -> Self {
+        Self::new(|| String::new())
+    }
+}
+
 
 #[cfg(test)]
 mod tests {

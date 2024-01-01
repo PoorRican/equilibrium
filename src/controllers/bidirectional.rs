@@ -34,19 +34,15 @@ enum State {
 ///
 /// let threshold = 10.0;
 /// let tolerance = 1.0;
-/// let input = Input::new(|| String::from("test"));
-///
-/// let increase_output = Output::new(|_| {});
-/// let decrease_output = Output::new(|_| {});
 ///
 /// let interval = Duration::seconds(1);
 ///
 /// let mut controller = BidirectionalThreshold::new(
 ///     threshold,
 ///     tolerance,
-///     input,
-///     increase_output,
-///     decrease_output,
+///     Input::default(),
+///     Output::default(),
+///     Output::default(),
 ///     interval,
 /// ).schedule_next(None);
 ///
@@ -196,11 +192,11 @@ mod tests {
     fn test_new() {
         let threshold = 10.0;
         let tolerance = 1.0;
-        let input = Input::new(|| String::from("test"));
+        let input = Input::default();
 
-        let increase_output = Output::new(|_| {});
-        let decrease_output = Output::new(|_| {});
-        let interval = chrono::Duration::seconds(1);
+        let increase_output = Output::default();
+        let decrease_output = Output::default();
+        let interval = Duration::seconds(1);
 
         let controller = BidirectionalThreshold::new(
             threshold,
@@ -225,10 +221,10 @@ mod tests {
     fn test_with_time() {
         let threshold = 10.0;
         let tolerance = 1.0;
-        let input = Input::new(|| String::from("test"));
+        let input = Input::default();
 
-        let increase_output = Output::new(|_| {});
-        let decrease_output = Output::new(|_| {});
+        let increase_output = Output::default();
+        let decrease_output = Output::default();
         let interval = chrono::Duration::seconds(1);
 
         let controller = BidirectionalThreshold::with_first(
@@ -251,10 +247,10 @@ mod tests {
     fn test_handle_above_threshold() {
         let threshold = 10.0;
         let tolerance = 1.0;
-        let input = Input::new(|| String::from("test"));
+        let input = Input::default();
 
-        let increase_output = Output::new(|_| {});
-        let decrease_output = Output::new(|_| {});
+        let increase_output = Output::default();
+        let decrease_output = Output::default();
         let interval = Duration::seconds(1);
 
         let mut controller = BidirectionalThreshold::new(
@@ -276,10 +272,10 @@ mod tests {
     fn test_handle_below_threshold() {
         let threshold = 10.0;
         let tolerance = 1.0;
-        let input = Input::new(|| String::from("test"));
+        let input = Input::default();
 
-        let increase_output = Output::new(|_| {});
-        let decrease_output = Output::new(|_| {});
+        let increase_output = Output::default();
+        let decrease_output = Output::default();
         let interval = Duration::seconds(1);
 
         let mut controller = BidirectionalThreshold::new(
@@ -301,10 +297,10 @@ mod tests {
     fn test_handle_within_tolerance() {
         let threshold = 10.0;
         let tolerance = 1.0;
-        let input = Input::new(|| String::from(""));
+        let input = Input::default();
 
-        let increase_output = Output::new(|_| {});
-        let decrease_output = Output::new(|_| {});
+        let increase_output = Output::default();
+        let decrease_output = Output::default();
         let interval = Duration::seconds(1);
 
         let mut controller = BidirectionalThreshold::new(
@@ -337,8 +333,8 @@ mod tests {
             input_values.lock().unwrap().pop_front().unwrap()
         );
 
-        let increase_output = Output::new(|_| {});
-        let decrease_output = Output::new(|_| {});
+        let increase_output = Output::default();
+        let decrease_output = Output::default();
         let interval = Duration::seconds(1);
 
         let time = Utc::now();

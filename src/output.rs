@@ -28,6 +28,11 @@ where F: FnMut(bool) {
     }
 }
 
+impl Default for Output<fn(bool)> {
+    fn default() -> Self {
+        Self::new(|_| {})
+    }
+}
 
 #[cfg(test)]
 mod tests {

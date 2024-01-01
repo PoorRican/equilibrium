@@ -21,7 +21,7 @@ use crate::output::Output;
 /// let time = NaiveTime::from_hms_opt(5, 0, 0).unwrap();
 /// let duration = Duration::hours(8);
 /// let mut output = TimedOutput::new(
-///   Output::new(|_| {}),
+///   Output::default(),
 ///   time,
 ///   duration,
 /// );
@@ -70,7 +70,7 @@ mod tests {
         let time = NaiveTime::from_hms_opt(5, 0, 0).unwrap();
         let duration = Duration::hours(8);
         let output = TimedOutput::new(
-            Output::new(|_| {}),
+            Output::default(),
             time,
             duration,
         );
@@ -83,7 +83,7 @@ mod tests {
         let time = NaiveTime::from_hms_opt(5, 0, 0).unwrap();
         let duration = Duration::hours(12);
         let mut output = TimedOutput::new(
-            Output::new(|_| {}),
+            Output::default(),
             time,
             duration,
         );

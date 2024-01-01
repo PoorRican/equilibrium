@@ -65,12 +65,10 @@ where
     /// use equilibrium::input::Input;
     /// use equilibrium::output::Output;
     ///
-    /// let input = Input::new(|| String::from("0.0"));
-    /// let output = Output::new(|_| {});
     /// let controller = Threshold::new(
     ///   5.0,
-    ///   input,
-    ///   output,
+    ///   Input::default(),
+    ///   Output::default(),
     ///  Duration::seconds(1)
     /// ).set_inverted();
     /// ```
@@ -164,8 +162,8 @@ mod tests {
         let threshold = 0.0;
         let interval = Duration::seconds(1);
 
-        let input = Input::new(|| String::from("0.0"));
-        let output = Output::new(|_| {});
+        let input = Input::default();
+        let output = Output::default();
         let controller = Threshold::new(
             threshold,
             input,
@@ -184,8 +182,8 @@ mod tests {
         let threshold = 0.0;
         let interval = Duration::seconds(1);
 
-        let input = Input::new(|| String::from("0.0"));
-        let output = Output::new(|_| {});
+        let input = Input::default();
+        let output = Output::default();
         let controller = Threshold::with_first(
             threshold,
             input,
@@ -202,8 +200,8 @@ mod tests {
     #[test]
     fn test_set_inverted() {
         // check default
-        let input = Input::new(|| String::from("0.0"));
-        let output = Output::new(|_| {});
+        let input = Input::default();
+        let output = Output::default();
         let controller = Threshold::new(
             0.0,
             input,
@@ -214,8 +212,8 @@ mod tests {
         assert_eq!(controller.inverted, false);
 
         // check after setting
-        let input = Input::new(|| String::from("0.0"));
-        let output = Output::new(|_| {});
+        let input = Input::default();
+        let output = Output::default();
         let controller = Threshold::new(
             0.0,
             input,
@@ -229,8 +227,8 @@ mod tests {
     #[test]
     fn test_get_threshold() {
         let threshold = 5.0;
-        let input = Input::new(|| String::from("0.0"));
-        let output = Output::new(|_| {});
+        let input = Input::default();
+        let output = Output::default();
         let controller = Threshold::new(
             threshold,
             input,
@@ -244,8 +242,8 @@ mod tests {
     #[test]
     fn test_set_threshold() {
         let threshold = 5.0;
-        let input = Input::new(|| String::from("0.0"));
-        let output = Output::new(|_| {});
+        let input = Input::default();
+        let output = Output::default();
         let mut controller = Threshold::new(
             threshold,
             input,
@@ -264,7 +262,7 @@ mod tests {
     fn test_above_threshold() {
         // check when below threshold
         let input = Input::new(|| String::from("0.0"));
-        let output = Output::new(|_| {});
+        let output = Output::default();
         let mut controller = Threshold::new(
             5.0,
             input,
@@ -276,7 +274,7 @@ mod tests {
 
         // check when above threshold
         let input = Input::new(|| String::from("10.0"));
-        let output = Output::new(|_| {});
+        let output = Output::default();
         let mut controller = Threshold::new(
             5.0,
             input,
