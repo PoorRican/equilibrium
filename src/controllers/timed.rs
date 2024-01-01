@@ -55,8 +55,8 @@ where F: FnMut(bool) {
         self.name = Some(name);
     }
 
-    fn get_name(&self) -> &Option<String> {
-        &self.name
+    fn get_name(&self) -> Option<String> {
+        self.name.clone()
     }
 
     fn poll(&mut self, time: DateTime<Utc>) {
@@ -98,10 +98,10 @@ mod tests {
     fn test_get_set_name() {
         let mut controller = TimedOutput::default();
 
-        assert_eq!(controller.get_name(), &None);
+        assert_eq!(controller.get_name(), None);
 
         controller.set_name(String::from("test"));
-        assert_eq!(controller.get_name(), &Some(String::from("test")));
+        assert_eq!(controller.get_name(), Some(String::from("test")));
     }
 
     #[test]

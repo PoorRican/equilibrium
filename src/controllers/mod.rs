@@ -10,6 +10,6 @@ pub use timed::TimedOutput;
 
 pub trait Controller {
     fn set_name(&mut self, name: String);
-    fn get_name(&self) -> &Option<String>;
+    fn get_name(&self) -> Option<String>;
     fn poll(&mut self, time: DateTime<Utc>);
 }
