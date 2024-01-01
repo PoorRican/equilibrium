@@ -48,12 +48,14 @@ enum State {
 ///
 /// controller.poll(Utc::now());
 /// ```
+#[derive(Debug)]
 pub struct BidirectionalThreshold<I, O, O2>
     where
         I: Fn() -> String,
         O: FnMut(bool),
         O2: FnMut(bool),
 {
+    name: Option<String>,
     threshold: f32,
     tolerance: f32,
     input: Input<I>,
@@ -82,6 +84,7 @@ impl<I, O, O2> BidirectionalThreshold<I, O, O2>
         interval: Duration,
     ) -> Self {
         Self {
+            name: None,
             threshold,
             tolerance,
             input,
@@ -102,6 +105,7 @@ impl<I, O, O2> BidirectionalThreshold<I, O, O2>
         interval: Duration,
     ) -> Self {
         Self {
+            name: None,
             threshold,
             tolerance,
             input,
@@ -164,6 +168,14 @@ impl<I, O, O2> Controller for BidirectionalThreshold<I, O, O2>
         O: FnMut(bool),
         O2: FnMut(bool),
 {
+    fn set_name(&mut self, name: String) {
+        self.name = Some(name);
+    }
+
+    fn get_name(&self) -> &Option<String> {
+        &self.name
+    }
+
     fn poll(&mut self, time: DateTime<Utc>) {
         if let Some(event) = self.schedule.attempt_execution(time) {
             match event {
@@ -179,6 +191,19 @@ impl<I, O, O2> Controller for BidirectionalThreshold<I, O, O2>
                 _ => {}
             }
         }
+    }
+}
+
+impl Default for BidirectionalThreshold<fn() -> String, fn(bool), fn(bool)> {
+    fn default() -> Self {
+        Self::new(
+            0.0,
+            0.0,
+            Input::default(),
+            Output::default(),
+            Output::default(),
+            Duration::seconds(1),
+        )
     }
 }
 
@@ -316,6 +341,17 @@ mod tests {
 
         assert_eq!(controller.increase_output.get_state(), Some(false));
         assert_eq!(controller.decrease_output.get_state(), Some(false));
+    }
+
+    #[test]
+    fn test_get_set_name() {
+        let mut controller = BidirectionalThreshold::default();
+
+        assert_eq!(controller.get_name(), &None);
+
+        controller.set_name(String::from("test"));
+
+        assert_eq!(controller.get_name(), &Some(String::from("test")));
     }
 
     #[test]

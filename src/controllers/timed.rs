@@ -28,9 +28,10 @@ use crate::output::Output;
 ///
 /// output.poll(Utc::now());
 /// ```
-///
+#[derive(Debug)]
 pub struct TimedOutput<F>
 where F: FnMut(bool) {
+    name: Option<String>,
     output: Output<F>,
     start_time: NaiveTime,
     duration: Duration,
@@ -40,6 +41,7 @@ impl<F> TimedOutput<F>
 where F: FnMut(bool) {
     pub fn new(output: Output<F>, start_time: NaiveTime, duration: Duration) -> Self {
         Self {
+            name: None,
             output,
             start_time,
             duration,
@@ -49,6 +51,14 @@ where F: FnMut(bool) {
 
 impl<F> Controller for TimedOutput<F>
 where F: FnMut(bool) {
+    fn set_name(&mut self, name: String) {
+        self.name = Some(name);
+    }
+
+    fn get_name(&self) -> &Option<String> {
+        &self.name
+    }
+
     fn poll(&mut self, time: DateTime<Utc>) {
         let time = time.naive_utc().time();
         let end_time = self.start_time + self.duration;
@@ -57,6 +67,12 @@ where F: FnMut(bool) {
         } else {
             self.output.deactivate();
         }
+    }
+}
+
+impl Default for TimedOutput<fn(bool)> {
+    fn default() -> Self {
+        Self::new(Output::default(), NaiveTime::from_hms_opt(0, 0, 0).unwrap(), Duration::seconds(0))
     }
 }
 
@@ -76,6 +92,16 @@ mod tests {
         );
 
         assert_eq!(output.output.get_state(), None);
+    }
+
+    #[test]
+    fn test_get_set_name() {
+        let mut controller = TimedOutput::default();
+
+        assert_eq!(controller.get_name(), &None);
+
+        controller.set_name(String::from("test"));
+        assert_eq!(controller.get_name(), &Some(String::from("test")));
     }
 
     #[test]

@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use crate::types::action::Action;
 
 /// Encapsulate IO events for scheduling or logging
+#[derive(Debug, PartialEq, Clone)]
 pub struct Event {
     action: Action,
 

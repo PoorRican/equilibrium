@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub struct Output<F>
 where F: FnMut(bool) {
     callback: F,

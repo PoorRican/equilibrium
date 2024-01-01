@@ -13,11 +13,13 @@ use crate::scheduler::Scheduler;
 /// * Controlling a fan based on temperature
 /// * Controlling CO2 levels in a grow room
 /// * Maintaining sufficient water levels in a reservoir
+#[derive(Debug)]
 pub struct Threshold<I, O>
 where
     I: Fn() -> String,
     O: FnMut(bool),
 {
+    name: Option<String>,
     threshold: f32,
     input: Input<I>,
     output: Output<O>,
@@ -33,6 +35,7 @@ where
 {
     pub fn new(threshold: f32, input: Input<I>, output: Output<O>, interval: Duration) -> Threshold<I, O> {
         Self {
+            name: None,
             threshold,
             input,
             output,
@@ -44,6 +47,7 @@ where
 
     pub fn with_first(threshold: f32, input: Input<I>, output: Output<O>, interval: Duration) -> Threshold<I, O> {
         Self {
+            name: None,
             threshold,
             input,
             output,
@@ -131,6 +135,14 @@ impl<I, O> Controller for Threshold<I, O>
         I: Fn() -> String,
         O: FnMut(bool),
 {
+    fn set_name(&mut self, name: String) {
+        self.name = Some(name);
+    }
+
+    fn get_name(&self) -> &Option<String> {
+        &self.name
+    }
+
     fn poll(&mut self, time: DateTime<Utc>) {
         if let Some(action) = self.schedule.attempt_execution(time) {
             match action {
@@ -147,6 +159,17 @@ impl<I, O> Controller for Threshold<I, O>
                 _ => panic!("Encountered unexpected action in threshold controller")
             }
         }
+    }
+}
+
+impl Default for Threshold<fn() -> String, fn(bool)> {
+    fn default() -> Self {
+        Self::new(
+            0.0,
+            Input::default(),
+            Output::default(),
+            Duration::seconds(1)
+        )
     }
 }
 
@@ -393,6 +416,17 @@ mod tests {
         // check after third read when below threshold
         controller.poll(time + Duration::seconds(3));
         assert_eq!(external_output_state.lock().unwrap().clone(), false);
+    }
+
+    #[test]
+    fn test_get_set_name() {
+        let mut controller = Threshold::default();
+
+        assert_eq!(controller.get_name(), &None);
+
+        controller.set_name(String::from("test"));
+
+        assert_eq!(controller.get_name(), &Some(String::from("test")));
     }
 
     #[test]

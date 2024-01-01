@@ -6,6 +6,7 @@ use crate::types::{Action, Event};
 /// The purpose of this struct is to manage when IO events should be executed. "Scheduling" of
 /// events should be handled outside of this struct. This struct should only be used to determine
 /// when an event should be executed.
+#[derive(Debug, Default, PartialEq)]
 pub struct Scheduler {
     future_events: Vec<Event>,
     events: Vec<Event>,
