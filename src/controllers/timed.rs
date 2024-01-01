@@ -4,10 +4,31 @@ use crate::output::Output;
 
 /// Simple controller that turns on an output at a specific time and turns it off after a duration.
 ///
-/// # Examples
+/// This is used to repeat the same action every day at the same time.
+///
+/// # Potential Use Cases
+/// * Controlling grow lights
+/// * Regularly turning on an O2 pump for a fish tank or bioreactor
+/// * Regularly dumping a sedimentation filter
+/// * Controlling a feed motor for fish feed
+///
+/// # Example
 /// ```
 /// use chrono::{Duration, NaiveTime, Utc};
-/// use equilibrium::controllers::TimedOutput;
+/// use equilibrium::controllers::{Controller, TimedOutput};
+/// use equilibrium::output::Output;
+///
+/// let time = NaiveTime::from_hms_opt(5, 0, 0).unwrap();
+/// let duration = Duration::hours(8);
+/// let mut output = TimedOutput::new(
+///   Output::new(|_| {}),
+///   time,
+///   duration,
+/// );
+///
+/// output.poll(Utc::now());
+/// ```
+///
 pub struct TimedOutput<F>
 where F: FnMut(bool) {
     output: Output<F>,
@@ -44,6 +65,7 @@ mod tests {
     use chrono::TimeZone;
     use super::*;
 
+    #[test]
     fn test_new() {
         let time = NaiveTime::from_hms_opt(5, 0, 0).unwrap();
         let duration = Duration::hours(8);

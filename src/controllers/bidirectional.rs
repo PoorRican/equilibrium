@@ -7,12 +7,52 @@ use crate::input::Input;
 use crate::output::Output;
 use crate::scheduler::Scheduler;
 
+/// Internal state of the controller
+///
+/// This is used to determine which output should be activated.
 enum State {
     BelowThreshold,
     WithinTolerance,
     AboveThreshold,
 }
 
+/// Controller with two outputs that are activated when the input is above or below a threshold.
+///
+/// This is used to control a system where the input can be increased or decreased to reach a
+/// threshold. This is intended to control a system that has to modes of control, where the
+/// value does not need to be precisely controlled, but only needs to be within a certain range.
+///
+/// # Potential Use Cases
+/// * For a reservoir or sump pump, turning on a pump or relief valve according to fill level
+///
+/// # Example
+/// ```
+/// use chrono::{Duration, Utc};
+/// use equilibrium::controllers::{Controller, BidirectionalThreshold};
+/// use equilibrium::input::Input;
+/// use equilibrium::output::Output;
+///
+/// let threshold = 10.0;
+/// let tolerance = 1.0;
+/// let input = Input::new(|| String::from("test"));
+///
+/// let increase_output = Output::new(|_| {});
+/// let decrease_output = Output::new(|_| {});
+///
+/// let interval = Duration::seconds(1);
+///
+/// let mut controller = BidirectionalThreshold::new(
+///     threshold,
+///     tolerance,
+///     input,
+///     increase_output,
+///     decrease_output,
+///     interval,
+/// );
+///
+/// controller.poll(Utc::now());
+/// panic!("");
+/// ```
 pub struct BidirectionalThreshold<I, O, O2>
     where
         I: Fn() -> String,
@@ -53,6 +93,7 @@ impl<I, O, O2> BidirectionalThreshold<I, O, O2>
         }.schedule_first()
     }
 
+    /// Create a new controller with a specific time as the first read time
     pub fn with_time(
         threshold: f32,
         tolerance: f32,
@@ -75,6 +116,7 @@ impl<I, O, O2> BidirectionalThreshold<I, O, O2>
         control
     }
 
+    /// Read the input and determine the state of the controller
     fn get_state(&mut self) -> State {
         let value = self.input.read().parse::<f32>().unwrap();
         if value > self.threshold + self.tolerance {
@@ -86,25 +128,32 @@ impl<I, O, O2> BidirectionalThreshold<I, O, O2>
         }
     }
 
+    /// Attempt to lower the input value
     fn handle_above_threshold(&mut self) {
         self.decrease_output.activate();
         self.increase_output.deactivate();
     }
 
+    /// Attempt to raise the input value
     fn handle_below_threshold(&mut self) {
         self.increase_output.activate();
         self.decrease_output.deactivate();
     }
 
+    /// Turn off both outputs to maintain the current value
     fn handle_within_tolerance(&mut self) {
         self.increase_output.deactivate();
         self.decrease_output.deactivate();
     }
 
+    /// Schedule the next read for the specified time
     fn schedule_next(&mut self, time: DateTime<Utc>) {
         self.schedule.schedule_read(time + self.interval);
     }
 
+    /// Schedule the first read for the current time
+    ///
+    /// This is called in [`BidirectionalThreshold::new`].
     fn schedule_first(mut self) -> Self {
         self.schedule_next(Utc::now());
         self

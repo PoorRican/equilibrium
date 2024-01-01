@@ -4,6 +4,15 @@ use crate::input::Input;
 use crate::output::Output;
 use crate::scheduler::Scheduler;
 
+/// A controller that reads an input and activates an output if the value is above a threshold
+///
+/// This is used when the input does not need to be precisely controlled and has tolerance to
+/// exceed the threshold.
+///
+/// # Potential Use Cases
+/// * Controlling a fan based on temperature
+/// * Controlling CO2 levels in a grow room
+/// * Maintaining sufficient water levels in a reservoir
 pub struct Threshold<I, O>
 where
     I: Fn() -> String,
@@ -46,6 +55,27 @@ where
         controller
     }
 
+    /// Builder method to set the controller to be inverted
+    ///
+    /// This means that the output will be activated when the input is below the threshold and
+    /// deactivated when the input is above the threshold.
+    ///
+    /// # Example
+    /// ```
+    /// use chrono::Duration;
+    /// use equilibrium::controllers::Threshold;
+    /// use equilibrium::input::Input;
+    /// use equilibrium::output::Output;
+    ///
+    /// let input = Input::new(|| String::from("0.0"));
+    /// let output = Output::new(|_| {});
+    /// let controller = Threshold::new(
+    ///   5.0,
+    ///   input,
+    ///   output,
+    ///  Duration::seconds(1)
+    /// ).set_inverted();
+    /// ```
     pub fn set_inverted(mut self) -> Self {
         self.inverted = true;
         self
@@ -88,6 +118,9 @@ where
         self.schedule.schedule_read(time + self.interval);
     }
 
+    /// Schedule the first read
+    ///
+    /// This is used in [`Threshold::new`] to schedule the first read
     fn schedule_first(mut self) -> Self {
         self.schedule_next(Utc::now());
         self

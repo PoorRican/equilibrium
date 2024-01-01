@@ -35,7 +35,7 @@ mod tests {
 
     #[test]
     fn test_new() {
-        let mut output = super::Output::new(|_| {});
+        let output = super::Output::new(|_| {});
 
         assert_eq!(output.get_state(), None);
     }
