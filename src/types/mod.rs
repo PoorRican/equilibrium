@@ -1,2 +1,5 @@
-pub mod action;
-pub mod event;
+mod action;
+mod event;
+
+pub use action::Action;
+pub use event::Event;

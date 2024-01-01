@@ -1,6 +1,5 @@
 use chrono::{DateTime, Utc};
-use crate::types::action::Action;
-use crate::types::event::Event;
+use crate::types::{Action, Event};
 
 /// A way to manage future and past [`Event`]s
 ///
@@ -66,6 +65,11 @@ impl Scheduler {
         } else {
             None
         }
+    }
+
+    /// Returns a reference of future events
+    pub fn get_future_events(&self) -> &Vec<Event> {
+        &self.future_events
     }
 }
 
