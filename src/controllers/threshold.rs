@@ -3,6 +3,7 @@ use crate::controllers::Controller;
 use crate::input::Input;
 use crate::output::Output;
 use crate::scheduler::Scheduler;
+use crate::types::Message;
 
 /// A controller that reads an input and activates an output if the value is above a threshold
 ///
@@ -143,22 +144,39 @@ impl<I, O> Controller for Threshold<I, O>
         self.name.clone()
     }
 
-    fn poll(&mut self, time: DateTime<Utc>) {
+    /// Read the input and activate the output if the value is above the threshold
+    ///
+    /// The next read will be scheduled for the specified interval after the current time.
+    fn poll(&mut self, time: DateTime<Utc>) -> Option<Message> {
         if let Some(event) = self.schedule.attempt_execution(time) {
             match event.get_action() {
                 crate::types::Action::Read => {
                     // Read the input and handle the result
-                    match self.above_threshold() {
-                        true => self.handle_above_threshold(),
-                        false => self.handle_below_threshold()
-                    }
+                    let msg = match self.above_threshold() {
+                        true => {
+                            self.handle_above_threshold();
+                            "Above Threshold".to_string()
+                        },
+                        false => {
+                            self.handle_below_threshold();
+                            "Below Threshold".to_string()
+                        }
+                    };
 
                     // Schedule the next read
                     self.schedule.schedule_read(time + self.interval);
-                },
+
+                    // prepare Message
+                    return Some(Message::new(
+                        self.get_name().unwrap_or_default(),
+                        msg,
+                        time,
+                    ))
+                }
                 _ => panic!("Encountered unexpected action in threshold controller")
             }
         }
+        None
     }
 }
 

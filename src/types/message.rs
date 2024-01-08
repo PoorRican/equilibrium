@@ -15,7 +15,7 @@ pub struct Message {
 }
 
 impl Message {
-    fn new(name: String, content: String, timestamp: DateTime<Utc>) -> Self {
+   pub fn new(name: String, content: String, timestamp: DateTime<Utc>) -> Self {
         Self {
             name,
             content,

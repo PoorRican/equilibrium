@@ -1,7 +1,7 @@
 /// Bidirectional Threshold
 
 use crate::controllers::Controller;
-use crate::types::Action;
+use crate::types::{Action, Message};
 use chrono::{DateTime, Duration, Utc};
 use crate::input::Input;
 use crate::output::Output;
@@ -176,21 +176,36 @@ impl<I, O, O2> Controller for BidirectionalThreshold<I, O, O2>
         self.name.clone()
     }
 
-    fn poll(&mut self, time: DateTime<Utc>) {
+    fn poll(&mut self, time: DateTime<Utc>) -> Option<Message> {
         if let Some(event) = self.schedule.attempt_execution(time) {
             match event.get_action() {
                 Action::Read => {
-                    let state = self.get_state();
-                    match state {
-                        State::AboveThreshold => self.handle_above_threshold(),
-                        State::BelowThreshold => self.handle_below_threshold(),
-                        State::WithinTolerance => self.handle_within_tolerance(),
-                    }
+                    let msg = match self.get_state() {
+                        State::AboveThreshold => {
+                            self.handle_above_threshold();
+                            "Above Threshold".to_string()
+                        },
+                        State::BelowThreshold => {
+                            self.handle_below_threshold();
+                            "Below Threshold".to_string()
+                        },
+                        State::WithinTolerance => {
+                            self.handle_within_tolerance();
+                            "Within Tolerance".to_string()
+                        },
+                    };
                     self.schedule_next_in_place(time);
+
+                    return Some(Message::new(
+                        self.get_name().unwrap_or_default(),
+                        msg,
+                        event.get_timestamp().clone(),
+                    ));
                 }
                 _ => {}
             }
         }
+        None
     }
 }
 

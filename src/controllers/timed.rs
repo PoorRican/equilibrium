@@ -1,6 +1,7 @@
 use chrono::{DateTime, Duration, NaiveTime, Utc};
 use crate::controllers::Controller;
 use crate::output::Output;
+use crate::types::Message;
 
 /// Simple controller that turns on an output at a specific time and turns it off after a duration.
 ///
@@ -59,14 +60,20 @@ where F: FnMut(bool) {
         self.name.clone()
     }
 
-    fn poll(&mut self, time: DateTime<Utc>) {
-        let time = time.naive_utc().time();
+    fn poll(&mut self, time: DateTime<Utc>) -> Option<Message> {
+        let naive_time = time.naive_utc().time();
         let end_time = self.start_time + self.duration;
-        if time >= self.start_time && time < end_time {
+        let msg = if naive_time >= self.start_time && naive_time < end_time {
             self.output.activate();
+            "Activating".to_string()
         } else {
             self.output.deactivate();
-        }
+            "Deactivating".to_string()
+        };
+        Some(Message::new(
+            self.get_name().unwrap_or_default(),
+            msg,
+            time))
     }
 }
 
