@@ -7,23 +7,19 @@ pub struct Message {
     /// The name of the originating device
     name: String,
 
-    /// The action of the event
-    action: Action,
-
-    /// The value of the read value
-    value: Option<String>,
+    /// The content of the message
+    content: String,
 
     /// The timestamp that the event took place
     timestamp: DateTime<Utc>,
 }
 
 impl Message {
-    fn from_event(event: Event, name: String) -> Self {
+    fn new(name: String, content: String, timestamp: DateTime<Utc>) -> Self {
         Self {
             name,
-            action: event.get_action(),
-            value: event.get_value().clone(),
-            timestamp: event.get_timestamp().clone(),
+            content,
+            timestamp,
         }
     }
 }
