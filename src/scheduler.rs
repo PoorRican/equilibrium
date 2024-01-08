@@ -57,12 +57,11 @@ impl Scheduler {
     /// # Returns
     /// * `Some(Action)` - The action associated with the event that should be executed
     /// * `None` - No events should be executed at the specified time
-    pub fn attempt_execution(&mut self, time: DateTime<Utc>) -> Option<Action> {
+    pub fn attempt_execution(&mut self, time: DateTime<Utc>) -> Option<Event> {
         if let Some(index) = self.future_events.iter().position(|e| e.should_execute(time)) {
             let event = self.future_events.remove(index);
-            let action = event.get_action();
-            self.events.push(event);
-            Some(action)
+            self.events.push(event.clone());
+            Some(event)
         } else {
             None
         }
@@ -126,9 +125,10 @@ mod tests {
 
         let timestamp = Utc.with_ymd_and_hms(2023, 1, 1, 0, 0, 1)
             .unwrap();
-        let action = scheduler.attempt_execution(timestamp);
+        let event = scheduler.attempt_execution(timestamp);
 
-        assert_eq!(action, Some(Action::On));
+        assert!(event.is_some());
+        assert_eq!(event.unwrap().get_action(), Action::On);
         assert_eq!(scheduler.has_future_events(), false);
         assert_eq!(scheduler.events.len(), 1);
 
@@ -143,17 +143,19 @@ mod tests {
 
         let timestamp = Utc.with_ymd_and_hms(2023, 1, 1, 0, 2, 0)
             .unwrap();
-        let action = scheduler.attempt_execution(timestamp);
+        let event = scheduler.attempt_execution(timestamp);
 
-        assert_eq!(action, Some(Action::Off));
+        assert!(event.is_some());
+        assert_eq!(event.unwrap().get_action(), Action::Off);
         assert_eq!(scheduler.has_future_events(), true);
         assert_eq!(scheduler.events.len(), 2);
 
         let timestamp = Utc.with_ymd_and_hms(2023, 1, 1, 0, 4, 0)
             .unwrap();
-        let action = scheduler.attempt_execution(timestamp);
+        let event = scheduler.attempt_execution(timestamp);
 
-        assert_eq!(action, Some(Action::On));
+        assert!(event.is_some());
+        assert_eq!(event.unwrap().get_action(), Action::On);
         assert_eq!(scheduler.has_future_events(), false);
         assert_eq!(scheduler.events.len(), 3);
     }

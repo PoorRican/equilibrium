@@ -178,7 +178,7 @@ impl<I, O, O2> Controller for BidirectionalThreshold<I, O, O2>
 
     fn poll(&mut self, time: DateTime<Utc>) {
         if let Some(event) = self.schedule.attempt_execution(time) {
-            match event {
+            match event.get_action() {
                 Action::Read => {
                     let state = self.get_state();
                     match state {

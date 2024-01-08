@@ -144,8 +144,8 @@ impl<I, O> Controller for Threshold<I, O>
     }
 
     fn poll(&mut self, time: DateTime<Utc>) {
-        if let Some(action) = self.schedule.attempt_execution(time) {
-            match action {
+        if let Some(event) = self.schedule.attempt_execution(time) {
+            match event.get_action() {
                 crate::types::Action::Read => {
                     // Read the input and handle the result
                     match self.above_threshold() {
