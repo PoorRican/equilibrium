@@ -38,7 +38,7 @@ use crate::types::Message;
 ///
 /// let interval = Duration::seconds(1);
 ///
-/// let mut controller = Threshold::with_first(
+/// let mut controller = Threshold::new(
 ///     threshold,
 ///     Input::default(),
 ///     Output::default(),
@@ -61,7 +61,7 @@ use crate::types::Message;
 ///
 /// let interval = Duration::seconds(1);
 ///
-/// let mut controller = Threshold::with_first(
+/// let mut controller = Threshold::new(
 ///     threshold,
 ///     Input::default(),
 ///     Output::default(),
@@ -91,11 +91,9 @@ where
     I: Fn() -> String,
     O: FnMut(bool),
 {
-    /// Create a new controller without scheduling the first read
+    /// Create a new controller with a specific time as the first read time
     ///
-    /// [`Threshold::schedule_next()`] must be called after this function.
-    ///
-    /// [`Threshold::with_first()`] is the recommended API for instantiation.
+    /// This is the recommended API for instantiation.
     pub fn new(threshold: f32, input: Input<I>, output: Output<O>, interval: Duration) -> Threshold<I, O> {
         Self {
             name: None,
@@ -105,13 +103,17 @@ where
             schedule: Scheduler::new(),
             interval,
             inverted: false,
-        }
+        }.schedule_next(None)
     }
 
-    /// Create a new controller with a specific time as the first read time
+    /// Create a new controller without scheduling the first read
     ///
-    /// This is the recommended API for instantiation.
-    pub fn with_first(threshold: f32, input: Input<I>, output: Output<O>, interval: Duration) -> Threshold<I, O> {
+    /// [`Threshold::schedule_next()`] must be called after this function.
+    ///
+    /// [`Threshold::new()`] is the recommended API for instantiation.
+    ///
+    /// This method is only useful for testing purposes.
+    pub fn new_without_scheduled(threshold: f32, input: Input<I>, output: Output<O>, interval: Duration) -> Threshold<I, O> {
         Self {
             name: None,
             threshold,
@@ -120,7 +122,7 @@ where
             schedule: Scheduler::new(),
             interval,
             inverted: false,
-        }.schedule_next(None)
+        }
     }
 
     /// Builder method to set the controller to be inverted
@@ -248,7 +250,7 @@ impl<I, O> Controller for Threshold<I, O>
 
 impl Default for Threshold<fn() -> String, fn(bool)> {
     fn default() -> Self {
-        Self::new(
+        Self::new_without_scheduled(
             0.0,
             Input::default(),
             Output::default(),
@@ -271,7 +273,7 @@ mod tests {
 
         let input = Input::default();
         let output = Output::default();
-        let controller = Threshold::new(
+        let controller = Threshold::new_without_scheduled(
             threshold,
             input,
             output,
@@ -291,7 +293,7 @@ mod tests {
 
         let input = Input::default();
         let output = Output::default();
-        let controller = Threshold::with_first(
+        let controller = Threshold::new(
             threshold,
             input,
             output,
@@ -309,7 +311,7 @@ mod tests {
         // check default
         let input = Input::default();
         let output = Output::default();
-        let controller = Threshold::new(
+        let controller = Threshold::new_without_scheduled(
             0.0,
             input,
             output,
@@ -321,7 +323,7 @@ mod tests {
         // check after setting
         let input = Input::default();
         let output = Output::default();
-        let controller = Threshold::new(
+        let controller = Threshold::new_without_scheduled(
             0.0,
             input,
             output,
@@ -336,7 +338,7 @@ mod tests {
         let threshold = 5.0;
         let input = Input::default();
         let output = Output::default();
-        let controller = Threshold::new(
+        let controller = Threshold::new_without_scheduled(
             threshold,
             input,
             output,
@@ -351,7 +353,7 @@ mod tests {
         let threshold = 5.0;
         let input = Input::default();
         let output = Output::default();
-        let mut controller = Threshold::new(
+        let mut controller = Threshold::new_without_scheduled(
             threshold,
             input,
             output,
@@ -370,7 +372,7 @@ mod tests {
         // check when below threshold
         let input = Input::new(|| String::from("0.0"));
         let output = Output::default();
-        let mut controller = Threshold::new(
+        let mut controller = Threshold::new_without_scheduled(
             5.0,
             input,
             output,
@@ -382,7 +384,7 @@ mod tests {
         // check when above threshold
         let input = Input::new(|| String::from("10.0"));
         let output = Output::default();
-        let mut controller = Threshold::new(
+        let mut controller = Threshold::new_without_scheduled(
             5.0,
             input,
             output,
@@ -402,7 +404,7 @@ mod tests {
             let mut external_state = external_output_state.lock().unwrap();
             *external_state = state;
         });
-        let mut controller = Threshold::new(
+        let mut controller = Threshold::new_without_scheduled(
             5.0,
             input,
             output,
@@ -432,7 +434,7 @@ mod tests {
             *external_state = state;
         });
 
-        let mut controller = Threshold::new(
+        let mut controller = Threshold::new_without_scheduled(
             5.0,
             input,
             output,
@@ -467,7 +469,7 @@ mod tests {
 
         let time = Utc::now();
 
-        let mut controller = Threshold::new(
+        let mut controller = Threshold::new_without_scheduled(
             5.0,
             input,
             output,
@@ -536,7 +538,7 @@ mod tests {
 
         let time = Utc::now();
 
-        let mut controller = Threshold::new(
+        let mut controller = Threshold::new_without_scheduled(
             5.0,
             input,
             output,

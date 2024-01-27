@@ -22,7 +22,7 @@
 //! // this represents a grow-light
 //! let time = NaiveTime::from_hms_opt(5, 0, 0).unwrap();
 //! let duration = Duration::hours(8);
-//! let mut grow_light = TimedOutput::new(
+//! let mut grow_light = TimedOutput::new_without_scheduled(
 //!     Output::new(|_| {
 //!        // low-level code would go here
 //!     }),
@@ -41,7 +41,7 @@
 //!     // low-level code would go here
 //!     String::from("79.0")
 //! });
-//! let mut heater_controller = Threshold::new(
+//! let mut heater_controller = Threshold::new_without_scheduled(
 //!     min_temp,
 //!     temp_sensor,
 //!     heater,

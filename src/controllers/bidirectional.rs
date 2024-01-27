@@ -38,7 +38,7 @@ enum State {
 ///
 /// let interval = Duration::seconds(1);
 ///
-/// let mut controller = BidirectionalThreshold::with_first(
+/// let mut controller = BidirectionalThreshold::new(
 ///     threshold,
 ///     tolerance,
 ///     Input::default(),
@@ -72,11 +72,9 @@ impl<I, O, O2> BidirectionalThreshold<I, O, O2>
         O: FnMut(bool),
         O2: FnMut(bool),
 {
-    /// Create a new controller without scheduling the first read
+    /// Create a new controller with a specific time as the first read time
     ///
-    /// [`BidirectionalThreshold::schedule_next()`] must be called after this function.
-    ///
-    /// [`BidirectionalThreshold::with_first()`] is the preferred API for instantiation.
+    /// This is the recommended API for instantiation.
     pub fn new(
         threshold: f32,
         tolerance: f32,
@@ -94,13 +92,17 @@ impl<I, O, O2> BidirectionalThreshold<I, O, O2>
             decrease_output,
             interval,
             schedule: Scheduler::new(),
-        }
+        }.schedule_next(None)
     }
 
-    /// Create a new controller with a specific time as the first read time
+    /// Create a new controller without scheduling the first read
     ///
-    /// This is the recommended API for instantiation.
-    pub fn with_first(
+    /// [`BidirectionalThreshold::schedule_next()`] must be called after this function.
+    ///
+    /// [`BidirectionalThreshold::new()`] is the preferred API for instantiation.
+    ///
+    /// This method is only useful for testing purposes.
+    pub fn new_without_scheduled(
         threshold: f32,
         tolerance: f32,
         input: Input<I>,
@@ -117,7 +119,7 @@ impl<I, O, O2> BidirectionalThreshold<I, O, O2>
             decrease_output,
             interval,
             schedule: Scheduler::new(),
-        }.schedule_next(None)
+        }
     }
 
     /// Read the input and determine the state of the controller
@@ -217,7 +219,7 @@ impl<I, O, O2> Controller for BidirectionalThreshold<I, O, O2>
 
 impl Default for BidirectionalThreshold<fn() -> String, fn(bool), fn(bool)> {
     fn default() -> Self {
-        Self::new(
+        Self::new_without_scheduled(
             0.0,
             0.0,
             Input::default(),
@@ -244,7 +246,7 @@ mod tests {
         let decrease_output = Output::default();
         let interval = Duration::seconds(1);
 
-        let controller = BidirectionalThreshold::new(
+        let controller = BidirectionalThreshold::new_without_scheduled(
             threshold,
             tolerance,
             input,
@@ -273,7 +275,7 @@ mod tests {
         let decrease_output = Output::default();
         let interval = Duration::seconds(1);
 
-        let controller = BidirectionalThreshold::with_first(
+        let controller = BidirectionalThreshold::new(
             threshold,
             tolerance,
             input,
@@ -299,7 +301,7 @@ mod tests {
         let decrease_output = Output::default();
         let interval = Duration::seconds(1);
 
-        let mut controller = BidirectionalThreshold::new(
+        let mut controller = BidirectionalThreshold::new_without_scheduled(
             threshold,
             tolerance,
             input,
@@ -324,7 +326,7 @@ mod tests {
         let decrease_output = Output::default();
         let interval = Duration::seconds(1);
 
-        let mut controller = BidirectionalThreshold::new(
+        let mut controller = BidirectionalThreshold::new_without_scheduled(
             threshold,
             tolerance,
             input,
@@ -349,7 +351,7 @@ mod tests {
         let decrease_output = Output::default();
         let interval = Duration::seconds(1);
 
-        let mut controller = BidirectionalThreshold::new(
+        let mut controller = BidirectionalThreshold::new_without_scheduled(
             threshold,
             tolerance,
             input,
@@ -395,7 +397,7 @@ mod tests {
         let interval = Duration::seconds(1);
 
         let time = Utc::now();
-        let mut controller = BidirectionalThreshold::new(
+        let mut controller = BidirectionalThreshold::new_without_scheduled(
             threshold,
             tolerance,
             input,

@@ -81,25 +81,23 @@ use super::*;
 
         let now = Utc.with_ymd_and_hms(2021, 1, 1, 4, 59, 59).unwrap();
 
-        // construct two different controllers
+        // construct two different controllers and manually schedule first execution
         let timed_output_name = String::from("timed");
-        let mut controller1 = TimedOutput::new(
+        let mut controller1 = TimedOutput::new_without_scheduled(
             Output::default(),
             NaiveTime::from_hms_opt(5, 0, 0).unwrap(),
             Duration::hours(12),
-        );
+        ).schedule_first(now.clone());
         controller1.set_name(timed_output_name.clone());
-        let controller1 = controller1.schedule_first(now.clone());
 
         let threshold_name = String::from("threshold");
-        let mut controller2 = Threshold::new(
+        let mut controller2 = Threshold::new_without_scheduled(
             70.0,
             Input::new(|| "69.0".to_string()),
             Output::default(),
             Duration::minutes(5),
-        );
+        ).schedule_next(now.clone());
         controller2.set_name(threshold_name.clone());
-        let controller2 = controller2.schedule_next(now.clone());
 
         // add controllers to group
         group.add_controller(controller1);

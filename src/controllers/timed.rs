@@ -43,25 +43,10 @@ where F: FnMut(bool) {
 
 impl<F> TimedOutput<F>
 where F: FnMut(bool) {
-    /// Create a new timed output
-    ///
-    /// This does not schedule the first event and [`TimedOutput::schedule_first`]
-    /// should be used to schedule the first event. It is recommended to use the [`TimedOutput::with_first`]
-    /// method instead.
-    pub fn new(output: Output<F>, start_time: NaiveTime, duration: Duration) -> Self {
-        Self {
-            name: None,
-            output,
-            start_time,
-            duration,
-            scheduler: Scheduler::new(),
-        }
-    }
-
-    /// Create a new timed output and schedule the first event
+    /// Create a new timed output with a scheduled the first event
     ///
     /// This is the recommended API for instantiating new [`TimeOutput`]s.
-    pub fn with_first(output: Output<F>, start_time: NaiveTime, duration: Duration) -> Self {
+    pub fn new(output: Output<F>, start_time: NaiveTime, duration: Duration) -> Self {
         Self {
             name: None,
             output,
@@ -71,6 +56,22 @@ where F: FnMut(bool) {
         }.schedule_first(None)
     }
 
+    /// Create a new timed output
+    ///
+    /// This does not schedule the first event and [`TimedOutput::schedule_first`]
+    /// should be used to schedule the first event. It is recommended to use the [`TimedOutput::new`]
+    /// method instead.
+    ///
+    /// This method is only useful for testing purposes.
+    pub fn new_without_scheduled(output: Output<F>, start_time: NaiveTime, duration: Duration) -> Self {
+        Self {
+            name: None,
+            output,
+            start_time,
+            duration,
+            scheduler: Scheduler::new(),
+        }
+    }
 
     /// Schedule the first event
     pub fn schedule_first<T>(mut self, time: T) -> Self
@@ -170,7 +171,7 @@ where F: FnMut(bool) {
 
 impl Default for TimedOutput<fn(bool)> {
     fn default() -> Self {
-        Self::new(Output::default(), NaiveTime::from_hms_opt(0, 0, 0).unwrap(), Duration::seconds(0))
+        Self::new_without_scheduled(Output::default(), NaiveTime::from_hms_opt(0, 0, 0).unwrap(), Duration::seconds(0))
     }
 }
 
@@ -183,7 +184,7 @@ mod tests {
     fn test_new() {
         let time = NaiveTime::from_hms_opt(5, 0, 0).unwrap();
         let duration = Duration::hours(8);
-        let output = TimedOutput::new(
+        let output = TimedOutput::new_without_scheduled(
             Output::default(),
             time,
             duration,
@@ -209,7 +210,7 @@ mod tests {
 
         let start_time = NaiveTime::from_hms_opt(5, 0, 0).unwrap();
         let duration = Duration::hours(12);
-        let mut output = TimedOutput::new(
+        let mut output = TimedOutput::new_without_scheduled(
             Output::default(),
             start_time,
             duration,
