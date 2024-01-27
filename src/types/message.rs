@@ -1,5 +1,4 @@
 use chrono::{DateTime, Utc};
-use crate::types::{Action, Event};
 
 /// A `Message` is a named event that is returned for logging
 #[derive(Debug, PartialEq, Clone)]
