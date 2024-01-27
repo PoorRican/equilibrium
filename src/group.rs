@@ -2,26 +2,57 @@ use chrono::{DateTime, Utc};
 use crate::controllers::Controller;
 use crate::types::Message;
 
+/// A container for handling multiple controllers
+///
+/// This struct is used to multiple all controllers at once. The controllers are polled in the order
+/// that they are added to the group, and the resulting [`Message`]s are returned.
+///
+/// Once a controller is added to the group, it is owned by the group and can only be accessed via
+/// the `Controller` trait. This means that any other methods exposed by the controller are not
+/// accessible.
 pub struct ControllerGroup {
     controllers: Vec<Box<dyn Controller>>,
 }
 
 impl ControllerGroup {
+    /// Create a new controller group
     pub fn new() -> Self {
         Self {
             controllers: Vec::new(),
         }
     }
 
+    /// Add a controller to the group
+    ///
+    /// This method takes ownership of the controller and adds it to the group. The controller can
+    /// no longer be accessed directly, but can be polled via the [`Controller`] trait.
+    ///
+    /// # Arguments
+    /// * `controller` - Any struct that implements the [`Controller`] trait
     pub fn add_controller<C>(&mut self, controller: C) where C: Controller + 'static {
         let wrapped = Box::new(controller);
         self.controllers.push(wrapped);
     }
 
+    /// Returns a reference to the controllers in the group
+    ///
+    /// This can be used for getting controller names or other information about the controllers
+    /// which has been exposed via the [`Controller`] trait.
     pub fn get_controllers(&self) -> &Vec<Box<dyn Controller>> {
         &self.controllers
     }
 
+    /// Poll all controllers in the group
+    ///
+    /// This method polls all controllers in the group and returns any resulting [`Message`]s
+    /// in the order that the controllers were added to the group.
+    ///
+    /// # Arguments
+    /// * `time` - The time to poll the controllers
+    ///
+    /// # Returns
+    /// A vector of any [`Message`]s that were returned by the controllers. If no messages were
+    /// returned, an empty vector is returned.
     pub fn poll(&mut self, time: DateTime<Utc>) -> Vec<Message> {
         let mut messages = Vec::new();
         for controller in self.controllers.iter_mut() {
