@@ -45,7 +45,7 @@ impl<F> TimedOutput<F>
 where F: FnMut(bool) {
     /// Create a new timed output with a scheduled the first event
     ///
-    /// This is the recommended API for instantiating new [`TimeOutput`]s.
+    /// This is the recommended API for instantiating new [`TimedOutput`]s.
     pub fn new(output: Output<F>, start_time: NaiveTime, duration: Duration) -> Self {
         Self {
             name: None,
