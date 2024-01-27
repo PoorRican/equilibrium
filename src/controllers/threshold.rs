@@ -1,5 +1,5 @@
 use chrono::{DateTime, Duration, Utc};
-use crate::controllers::Controller;
+use crate::controllers::{BidirectionalThreshold, Controller};
 use crate::input::Input;
 use crate::output::Output;
 use crate::scheduler::Scheduler;
@@ -7,13 +7,70 @@ use crate::types::Message;
 
 /// A controller that reads an input and activates an output if the value is above a threshold
 ///
-/// This is used when the input does not need to be precisely controlled and has tolerance to
-/// exceed the threshold.
+/// This controller is not very precise as it has no ability to prevent overcompensation. If control
+/// is required to be more precise, and has the ability for two outputs, consider using the
+/// [`BidirectionalThreshold`](crate::controllers::BidirectionalThreshold) controller. If that is not
+/// possible, then consider reducing the polling interval.
 ///
-/// # Potential Use Cases
+/// ## Operation
+/// By default, this controller will activate the output when the input is above the threshold and
+/// deactivate the output when the input is below the threshold. Use the [`set_inverted`](Threshold::set_inverted)
+/// so that the output is activated when the input is below the threshold and deactivated when the
+/// input is above the threshold.
+///
+///
+/// ## Potential Use Cases
 /// * Controlling a fan based on temperature
 /// * Controlling CO2 levels in a grow room
 /// * Maintaining sufficient water levels in a reservoir
+///
+///
+/// # Example
+///
+/// In this example, the controller will actuate the output if it rises above 10.0.
+/// ```
+/// use chrono::{Duration, Utc};
+/// use equilibrium::controllers::{Controller, Threshold};
+/// use equilibrium::input::Input;
+/// use equilibrium::output::Output;
+///
+/// let threshold = 10.0;
+///
+/// let interval = Duration::seconds(1);
+///
+/// let mut controller = Threshold::with_first(
+///     threshold,
+///     Input::default(),
+///     Output::default(),
+///     interval,
+/// );
+///
+/// controller.poll(Utc::now());
+/// ```
+///
+///
+/// The output can be inverted to actuate the output if it falls below the threshold.
+/// In this example, the output is actuated when the threshold falls below 10.0
+/// ```
+/// use chrono::{Duration, Utc};
+/// use equilibrium::controllers::{Controller, Threshold};
+/// use equilibrium::input::Input;
+/// use equilibrium::output::Output;
+///
+/// let threshold = 10.0;
+///
+/// let interval = Duration::seconds(1);
+///
+/// let mut controller = Threshold::with_first(
+///     threshold,
+///     Input::default(),
+///     Output::default(),
+///     interval,
+/// ).set_inverted();
+///
+/// controller.poll(Utc::now());
+/// ```
+///
 #[derive(Debug)]
 pub struct Threshold<I, O>
 where
@@ -34,6 +91,11 @@ where
     I: Fn() -> String,
     O: FnMut(bool),
 {
+    /// Create a new controller without scheduling the first read
+    ///
+    /// [`Threshold::schedule_next()`] must be called after this function.
+    ///
+    /// [`Threshold::with_first()`] is the recommended API for instantiation.
     pub fn new(threshold: f32, input: Input<I>, output: Output<O>, interval: Duration) -> Threshold<I, O> {
         Self {
             name: None,
@@ -46,6 +108,9 @@ where
         }
     }
 
+    /// Create a new controller with a specific time as the first read time
+    ///
+    /// This is the recommended API for instantiation.
     pub fn with_first(threshold: f32, input: Input<I>, output: Output<O>, interval: Duration) -> Threshold<I, O> {
         Self {
             name: None,
@@ -115,18 +180,16 @@ where
         }
     }
 
-    /// Schedule the next read for the specified time
-    fn schedule_next_in_place(&mut self, time: DateTime<Utc>) {
-        self.schedule.schedule_read(time + self.interval);
-    }
-
     /// Builder method to schedule the next read for the specified time
     ///
     /// If no time is specified, the current time will be used.
+    ///
+    /// # Arguments
+    /// * `time`: Time of the first event
     pub fn schedule_next<T>(mut self, time: T) -> Self
         where T: Into<Option<DateTime<Utc>>>{
         let time= time.into().unwrap_or_else(|| Utc::now());
-        self.schedule_next_in_place(time);
+        self.schedule.schedule_read(time + self.interval);
         self
     }
 }

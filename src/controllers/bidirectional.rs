@@ -18,14 +18,15 @@ enum State {
 
 /// Controller with two outputs that are activated when the input is above or below a threshold.
 ///
-/// This is used to control a system where the input can be increased or decreased to reach a
-/// threshold. This is intended to control a system that has to modes of control, where the
-/// value does not need to be precisely controlled, but only needs to be within a certain range.
+/// This is used to control a system that has two modes of control (increase and decrease). This controller is
+/// not very precise, and is intended to keep a value within a general range.
 ///
-/// # Potential Use Cases
+/// ## Potential Use Cases
 /// * For a reservoir or sump pump, turning on a pump or relief valve according to fill level
 ///
 /// # Example
+/// In this example, the controller will increase the value if it rises above 11.0, and decrease the value if it falls
+/// below 9.0.
 /// ```
 /// use chrono::{Duration, Utc};
 /// use equilibrium::controllers::{Controller, BidirectionalThreshold};
@@ -37,14 +38,14 @@ enum State {
 ///
 /// let interval = Duration::seconds(1);
 ///
-/// let mut controller = BidirectionalThreshold::new(
+/// let mut controller = BidirectionalThreshold::with_first(
 ///     threshold,
 ///     tolerance,
 ///     Input::default(),
 ///     Output::default(),
 ///     Output::default(),
 ///     interval,
-/// ).schedule_next(None);
+/// );
 ///
 /// controller.poll(Utc::now());
 /// ```
@@ -73,8 +74,9 @@ impl<I, O, O2> BidirectionalThreshold<I, O, O2>
 {
     /// Create a new controller without scheduling the first read
     ///
-    /// [`BidirectionalThreshold::schedule_next()`] or [`BidirectionalThreshold::schedule_fist()`]
-    /// must be called in this function.
+    /// [`BidirectionalThreshold::schedule_next()`] must be called after this function.
+    ///
+    /// [`BidirectionalThreshold::with_first()`] is the preferred API for instantiation.
     pub fn new(
         threshold: f32,
         tolerance: f32,
@@ -96,6 +98,8 @@ impl<I, O, O2> BidirectionalThreshold<I, O, O2>
     }
 
     /// Create a new controller with a specific time as the first read time
+    ///
+    /// This is the recommended API for instantiation.
     pub fn with_first(
         threshold: f32,
         tolerance: f32,

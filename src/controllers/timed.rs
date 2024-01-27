@@ -3,7 +3,7 @@ use crate::controllers::Controller;
 use crate::output::Output;
 use crate::types::Message;
 
-/// Simple controller that turns on an output at a specific time and turns it off after a duration.
+/// Simple controller that turns on an output at a specific time and turns it off after a duration has passed.
 ///
 /// This is used to repeat the same action every day at the same time.
 ///
@@ -14,6 +14,7 @@ use crate::types::Message;
 /// * Controlling a feed motor for fish feed
 ///
 /// # Example
+/// In this example, the output will be actuated at 5:00AM and deactivated after 8 hours (1:00PM)
 /// ```
 /// use chrono::{Duration, NaiveTime, Utc};
 /// use equilibrium::controllers::{Controller, TimedOutput};
