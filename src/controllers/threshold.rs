@@ -167,10 +167,12 @@ impl<I, O> Controller for Threshold<I, O>
                     self.schedule.schedule_read(time + self.interval);
 
                     // prepare Message
+                    let read_state = self.input.get_state().clone();
                     return Some(Message::new(
                         self.get_name().unwrap_or_default(),
                         msg,
                         time,
+                        read_state,
                     ))
                 }
                 _ => panic!("Encountered unexpected action in threshold controller")

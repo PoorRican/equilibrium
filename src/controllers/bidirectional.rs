@@ -196,10 +196,12 @@ impl<I, O, O2> Controller for BidirectionalThreshold<I, O, O2>
                     };
                     self.schedule_next_in_place(time);
 
+                    let read_state = self.input.get_state().clone();
                     return Some(Message::new(
                         self.get_name().unwrap_or_default(),
                         msg,
                         event.get_timestamp().clone(),
+                        read_state,
                     ));
                 }
                 _ => {}

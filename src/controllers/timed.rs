@@ -73,7 +73,9 @@ where F: FnMut(bool) {
         Some(Message::new(
             self.get_name().unwrap_or_default(),
             msg,
-            time))
+            time,
+            None
+        ))
     }
 }
 
