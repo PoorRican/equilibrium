@@ -187,7 +187,8 @@ where
     /// # Arguments
     /// * `time`: Time of the first event
     pub fn schedule_next<T>(mut self, time: T) -> Self
-        where T: Into<Option<DateTime<Utc>>>{
+        where T: Into<Option<DateTime<Utc>>>
+    {
         let time= time.into().unwrap_or_else(|| Utc::now());
         self.schedule.schedule_read(time + self.interval);
         self

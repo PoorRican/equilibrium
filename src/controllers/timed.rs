@@ -1,6 +1,7 @@
-use chrono::{DateTime, Duration, NaiveTime, Utc};
+use chrono::{DateTime, Duration, NaiveTime, Timelike, Utc};
 use crate::controllers::Controller;
 use crate::output::Output;
+use crate::scheduler::Scheduler;
 use crate::types::Message;
 
 /// Simple controller that turns on an output at a specific time and turns it off after a duration has passed.
@@ -37,17 +38,95 @@ where F: FnMut(bool) {
     output: Output<F>,
     start_time: NaiveTime,
     duration: Duration,
+    scheduler: Scheduler,
 }
 
 impl<F> TimedOutput<F>
 where F: FnMut(bool) {
+    /// Create a new timed output
+    ///
+    /// This does not schedule the first event and [`TimedOutput::schedule_first`]
+    /// should be used to schedule the first event. It is recommended to use the [`TimedOutput::with_first`]
+    /// method instead.
     pub fn new(output: Output<F>, start_time: NaiveTime, duration: Duration) -> Self {
         Self {
             name: None,
             output,
             start_time,
             duration,
+            scheduler: Scheduler::new(),
         }
+    }
+
+    /// Create a new timed output and schedule the first event
+    ///
+    /// This is the recommended API for instantiating new [`TimeOutput`]s.
+    pub fn with_first(output: Output<F>, start_time: NaiveTime, duration: Duration) -> Self {
+        Self {
+            name: None,
+            output,
+            start_time,
+            duration,
+            scheduler: Scheduler::new(),
+        }.schedule_first(None)
+    }
+
+
+    /// Schedule the first event
+    fn schedule_first<T>(mut self, time: T) -> Self
+        where T: Into<Option<DateTime<Utc>>>
+    {
+        self.schedule_on(time);
+
+        self
+    }
+
+    /// Determine the next time the output should be activated
+    ///
+    /// The next time that the output will be activated will be at the time specified by `start_time`,
+    /// if the given time is between `start_time` and `start_time + duration`, the output will
+    /// not be activated.
+    ///
+    /// # Arguments
+    /// * `time` - The time to check for events that should be executed. If `None`, the current time will be used.
+    fn schedule_on<T>(&mut self, time: T)
+        where T: Into<Option<DateTime<Utc>>>
+    {
+        let mut time= time.into().unwrap_or_else(|| Utc::now());
+        let current_time = time.naive_utc().time();
+
+        // calculate the next time the output should be activated
+        time = time.with_hour(self.start_time.hour()).unwrap();
+        time = time.with_minute(self.start_time.minute()).unwrap();
+        time = time.with_second(self.start_time.second()).unwrap();
+        time = time.with_nanosecond(0).unwrap();
+
+        let start_time = if current_time < self.start_time {
+            time
+        } else {
+            time + Duration::days(1)
+        };
+
+        self.scheduler.schedule_on(start_time);
+    }
+
+    /// Determine the next time the output should be deactivated
+    ///
+    /// # Arguments
+    /// * `time` - The time to check for events that should be executed. If `None`, the current time will be used.
+    fn schedule_off<T>(&mut self, time: T)
+        where T: Into<Option<DateTime<Utc>>>
+    {
+        let mut time= time.into().unwrap_or_else(|| Utc::now());
+
+        // calculate the next time the output should be deactivated
+        time = time.with_hour(self.start_time.hour()).unwrap();
+        time = time.with_minute(self.start_time.minute()).unwrap();
+        time = time.with_second(self.start_time.second()).unwrap();
+        time = time.with_nanosecond(0).unwrap();
+
+        let end_time = time + self.duration;
+        self.scheduler.schedule_off(end_time);
     }
 }
 
@@ -62,21 +141,30 @@ where F: FnMut(bool) {
     }
 
     fn poll(&mut self, time: DateTime<Utc>) -> Option<Message> {
-        let naive_time = time.naive_utc().time();
-        let end_time = self.start_time + self.duration;
-        let msg = if naive_time >= self.start_time && naive_time < end_time {
-            self.output.activate();
-            "Activating".to_string()
-        } else {
-            self.output.deactivate();
-            "Deactivating".to_string()
-        };
-        Some(Message::new(
-            self.get_name().unwrap_or_default(),
-            msg,
-            time,
-            None
-        ))
+        if let Some(event) = self.scheduler.attempt_execution(time) {
+            let msg = match event.get_action() {
+                crate::types::Action::On => {
+                    self.output.activate();
+                    self.schedule_off(time);
+                    "Activated"
+                },
+                crate::types::Action::Off => {
+                    self.output.deactivate();
+                    self.schedule_on(time);
+                    "Deactivated"
+                },
+                _ => {
+                    panic!("Invalid action for timed output")
+                }
+            };
+            return Some(Message::new(
+                self.get_name().unwrap_or_default(),
+                String::from(msg),
+                time,
+                None,
+            ))
+        }
+        None
     }
 }
 
@@ -116,17 +204,23 @@ mod tests {
 
     #[test]
     fn test_poll() {
-        let time = NaiveTime::from_hms_opt(5, 0, 0).unwrap();
+        // time to use for polling
+        let time = Utc.with_ymd_and_hms(2021, 1, 1, 4, 59, 59).unwrap();
+
+        let start_time = NaiveTime::from_hms_opt(5, 0, 0).unwrap();
         let duration = Duration::hours(12);
         let mut output = TimedOutput::new(
             Output::default(),
-            time,
+            start_time,
             duration,
-        );
+        ).schedule_first(time);
 
         assert_eq!(output.output.get_state(), None);
 
-        let time = Utc.with_ymd_and_hms(2021, 1, 1, 4, 59, 59).unwrap();
+        // force change output state to false
+        output.output.deactivate();
+
+        // begin polling
         output.poll(time);
         assert_eq!(output.output.get_state().unwrap(), false);
 
