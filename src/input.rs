@@ -1,3 +1,21 @@
+/// Encapsulates an input device
+///
+/// An input device is characterized by a physical device that can be read from.
+/// The low-level code to perform the read is encapsulated in the `Input` struct
+/// by providing a callback function that returns a `String`.
+///
+/// The `Input` struct also maintains the state of the input device, which is
+/// updated every time the input is read.
+///
+/// # Example
+/// ```
+/// use equilibrium::Input;
+///
+/// let input = Input::new(|| {
+///      // low-level code would go here
+///      String::from("1.0")
+/// });
+/// ```
 #[derive(Debug)]
 pub struct Input<F>
 where F: Fn() -> String {
@@ -7,6 +25,10 @@ where F: Fn() -> String {
 
 impl<F> Input<F>
 where F: Fn() -> String {
+    /// Create a new `Input` instance
+    ///
+    /// # Arguments
+    /// * `callback` - Low-level code that returns input as a `String`
     pub fn new(callback: F) -> Input<F> {
         Input {
             callback,
@@ -14,18 +36,26 @@ where F: Fn() -> String {
         }
     }
 
+    /// Read the input
+    ///
+    /// The callback function is executed and the internal state is executed.
     pub fn read(&mut self) -> String {
         let state = (self.callback)();
         self.state = Some(state.clone());
         state
     }
 
+    /// Get the current state of the input
+    ///
+    /// The state is treated as a cache of the last read value and gets updated
+    /// every time the input is read.
     pub fn get_state(&self) -> &Option<String> {
         &self.state
     }
 }
 
 impl Default for Input<fn() -> String> {
+    /// The default callback function returns an empty `String`
     fn default() -> Self {
         Self::new(|| String::new())
     }
@@ -56,7 +86,7 @@ mod tests {
         assert_eq!(input.get_state(), &Some(String::from("test")));
     }
 
-    /// An example that shows how to get a dynamic input
+    /// An example that shows how to get a dynamic input in tests
     #[test]
     fn test_read_twice() {
         let state_sequence =

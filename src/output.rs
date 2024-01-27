@@ -1,3 +1,22 @@
+/// Encapsulates an output device.
+///
+/// An output device is characterized by a physical device that can be activated or deactivated.
+/// At the moment, only binary outputs are supported, but this may change in the future. The low-level
+/// code to perform the activation/deactivation is encapsulated in the `Output` struct by providing
+/// a callback function that accepts a `bool` argument.
+///
+/// The `Output` struct also maintains the state of the output device, which is updated every time
+/// the output is activated or deactivated.
+///
+/// # Example
+/// ```
+/// use equilibrium::Output;
+///
+/// let output = Output::new(|state| {
+///     // low-level code would go here
+///     println!("Output state: {}", state);
+/// });
+/// ```
 #[derive(Debug)]
 pub struct Output<F>
 where F: FnMut(bool) {
@@ -7,6 +26,10 @@ where F: FnMut(bool) {
 
 impl<F> Output<F>
 where F: FnMut(bool) {
+    /// Create a new `Output` instance
+    ///
+    /// # Arguments
+    /// * `callback` - Low-level code that accepts a `bool` argument
     pub fn new(callback: F) -> Output<F> {
         Output {
             callback,
@@ -14,22 +37,29 @@ where F: FnMut(bool) {
         }
     }
 
+    /// Activate the output
     pub fn activate(&mut self) {
         self.state = Some(true);
         (self.callback)(true);
     }
 
+    /// Deactivate the output
     pub fn deactivate(&mut self) {
         self.state = Some(false);
         (self.callback)(false);
     }
 
+    /// Get the current state of the output
+    ///
+    /// The state is treated as a cache of the last activated/deactivated value and gets updated
+    /// every time the output is activated or deactivated.
     pub fn get_state(&self) -> Option<bool> {
         self.state
     }
 }
 
 impl Default for Output<fn(bool)> {
+    /// The default callback function does nothing
     fn default() -> Self {
         Self::new(|_| {})
     }

@@ -2,6 +2,12 @@ use chrono::{DateTime, Utc};
 use crate::types::action::Action;
 
 /// Encapsulate IO events for scheduling or logging
+///
+/// IO Events occur in the future and are used by [`crate::controllers::Controller`]s to determine
+/// when to execute IO actions.
+///
+/// The associated [`Action`] is expected to be handled by the [`crate::controllers::Controller`]
+/// at the time specified by the timestamp.
 #[derive(Debug, PartialEq, Clone)]
 pub struct Event {
     action: Action,
@@ -13,6 +19,11 @@ pub struct Event {
 }
 
 impl Event {
+    /// Create a new event
+    ///
+    /// # Arguments
+    /// * `action` - The action to be executed at the specified time
+    /// * `timestamp` - The time at which the action should be executed
     pub fn new(action: Action, timestamp: DateTime<Utc>) -> Self {
         Self {
             action,
@@ -21,6 +32,7 @@ impl Event {
         }
     }
 
+    /// Returns true if the event should be executed at the specified time
     pub fn should_execute(&self, time: DateTime<Utc>) -> bool {
         if self.timestamp > time {
             false
@@ -29,18 +41,26 @@ impl Event {
         }
     }
 
+    /// Returns the action associated with the event
     pub fn get_action(&self) -> Action {
         self.action
     }
 
+    /// Returns the value associated with the event
+    ///
+    /// This is only used during read events
     pub fn get_value(&self) -> &Option<String> {
         &self.value
     }
 
+    /// Returns the timestamp associated with the event
     pub fn get_timestamp(&self) -> &DateTime<Utc> {
         &self.timestamp
     }
 
+    /// Set the value associated with the event
+    ///
+    /// This is only used during read events
     pub fn set_value(&mut self, value: String) {
         self.value = Some(value);
     }

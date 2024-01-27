@@ -1,3 +1,15 @@
+//! Controller templates with defined scheduling, and a variety of input/output configurations.
+//!
+//! Each controller internally handles scheduling and performs reads and activates/deactivates outputs
+//! accordingly. Most controller implementations operate on intervals (e.g.: 1 second intervals), however
+//! it is possible to create a controller instance that schedules events in any way. For example, the
+//! [`TimedOutput`] controller actuates its output at a certain time every day for a set duration.
+//!
+//! Each controller defines a [`poll()`](Controller::poll) function, which returns a [`Option<Message>`].
+//! When a controller is polled, it evaluates whether an [`Action`](crate::types::Action) should be performed or not.
+//! If an [`Action`](crate::types::Action) is performed, a [`Message`] is returned for logging.
+//!
+//! The controllers are fully documented and contain potential use-cases, examples, and more detailed information.
 use chrono::{DateTime, Utc};
 
 mod threshold;
@@ -10,7 +22,7 @@ pub use timed::TimedOutput;
 
 use crate::types::Message;
 
-/// A `Controller` trait represents a named device that can be polled for events
+/// A trait that represents a named device that can be polled for events
 ///
 /// There are no restrictions on the inputs or outputs of a controller, but
 /// the controller must be able to be polled for events. Each instance of a

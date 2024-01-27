@@ -18,7 +18,7 @@ use crate::types::Message;
 /// ```
 /// use chrono::{Duration, NaiveTime, Utc};
 /// use equilibrium::controllers::{Controller, TimedOutput};
-/// use equilibrium::output::Output;
+/// use equilibrium::Output;
 ///
 /// let time = NaiveTime::from_hms_opt(5, 0, 0).unwrap();
 /// let duration = Duration::hours(8);

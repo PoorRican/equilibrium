@@ -8,7 +8,10 @@ use crate::types::{Action, Event};
 /// when an event should be executed.
 #[derive(Debug, Default, PartialEq)]
 pub struct Scheduler {
+    /// Events that should be executed in the future
     future_events: Vec<Event>,
+
+    /// Events that have been executed in the past
     events: Vec<Event>,
 }
 
@@ -21,6 +24,8 @@ impl Scheduler {
     }
 
     /// Returns true if there are any future events
+    ///
+    /// This is used in testing.
     pub fn has_future_events(&self) -> bool {
         !self.future_events.is_empty()
     }

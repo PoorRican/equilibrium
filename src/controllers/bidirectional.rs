@@ -30,8 +30,8 @@ enum State {
 /// ```
 /// use chrono::{Duration, Utc};
 /// use equilibrium::controllers::{Controller, BidirectionalThreshold};
-/// use equilibrium::input::Input;
-/// use equilibrium::output::Output;
+/// use equilibrium::Input;
+/// use equilibrium::Output;
 ///
 /// let threshold = 10.0;
 /// let tolerance = 1.0;
@@ -271,7 +271,7 @@ mod tests {
 
         let increase_output = Output::default();
         let decrease_output = Output::default();
-        let interval = chrono::Duration::seconds(1);
+        let interval = Duration::seconds(1);
 
         let controller = BidirectionalThreshold::with_first(
             threshold,

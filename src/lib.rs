@@ -1,5 +1,8 @@
-mod types;
+pub mod types;
 mod scheduler;
-pub mod input;
-pub mod output;
+mod input;
+mod output;
 pub mod controllers;
+
+pub use input::Input;
+pub use output::Output;

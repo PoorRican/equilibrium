@@ -1,3 +1,5 @@
+//! Primitive types used throughout the library
+
 mod action;
 mod event;
 mod message;

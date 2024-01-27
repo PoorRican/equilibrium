@@ -1,11 +1,11 @@
 use chrono::{DateTime, Duration, Utc};
-use crate::controllers::{BidirectionalThreshold, Controller};
+use crate::controllers::Controller;
 use crate::input::Input;
 use crate::output::Output;
 use crate::scheduler::Scheduler;
 use crate::types::Message;
 
-/// A controller that reads an input and activates an output if the value is above a threshold
+/// A controller that reads an input and activates an output if the value is above or below a threshold
 ///
 /// This controller is not very precise as it has no ability to prevent overcompensation. If control
 /// is required to be more precise, and has the ability for two outputs, consider using the
@@ -14,7 +14,7 @@ use crate::types::Message;
 ///
 /// ## Operation
 /// By default, this controller will activate the output when the input is above the threshold and
-/// deactivate the output when the input is below the threshold. Use the [`set_inverted`](Threshold::set_inverted)
+/// deactivate the output when the input is below the threshold. Use [`set_inverted`](Threshold::set_inverted)
 /// so that the output is activated when the input is below the threshold and deactivated when the
 /// input is above the threshold.
 ///
@@ -31,8 +31,8 @@ use crate::types::Message;
 /// ```
 /// use chrono::{Duration, Utc};
 /// use equilibrium::controllers::{Controller, Threshold};
-/// use equilibrium::input::Input;
-/// use equilibrium::output::Output;
+/// use equilibrium::Input;
+/// use equilibrium::Output;
 ///
 /// let threshold = 10.0;
 ///
@@ -54,8 +54,8 @@ use crate::types::Message;
 /// ```
 /// use chrono::{Duration, Utc};
 /// use equilibrium::controllers::{Controller, Threshold};
-/// use equilibrium::input::Input;
-/// use equilibrium::output::Output;
+/// use equilibrium::Input;
+/// use equilibrium::Output;
 ///
 /// let threshold = 10.0;
 ///
@@ -132,8 +132,8 @@ where
     /// ```
     /// use chrono::Duration;
     /// use equilibrium::controllers::Threshold;
-    /// use equilibrium::input::Input;
-    /// use equilibrium::output::Output;
+    /// use equilibrium::Input;
+    /// use equilibrium::Output;
     ///
     /// let controller = Threshold::new(
     ///   5.0,
