@@ -551,27 +551,45 @@ mod tests {
         assert_eq!(external_output_state.lock().unwrap().clone(), false);
 
         // check before first read
-        controller.poll(time + Duration::milliseconds(500));
+        let message = controller.poll(time + Duration::milliseconds(500));
         assert_eq!(external_output_state.lock().unwrap().clone(), false);
+
+        assert!(message.is_none());
 
         // check after first read when below threshold
-        controller.poll(time + Duration::seconds(1));
+        let message = controller.poll(time + Duration::seconds(1));
         assert_eq!(external_output_state.lock().unwrap().clone(), true);
+
+        assert!(message.is_some());
+        assert_eq!(message.as_ref().unwrap().get_read_state().unwrap(), "0.0");
+        assert_eq!(message.as_ref().unwrap().get_content(), "Below Threshold");
 
         // check before second poll execution
-        controller.poll(time + Duration::milliseconds(1500));
+        let message = controller.poll(time + Duration::milliseconds(1500));
         assert_eq!(external_output_state.lock().unwrap().clone(), true);
+
+        assert!(message.is_none());
 
         // check after second read when above threshold
-        controller.poll(time + Duration::seconds(2));
+        let message = controller.poll(time + Duration::seconds(2));
         assert_eq!(external_output_state.lock().unwrap().clone(), false);
+
+        assert!(message.is_some());
+        assert_eq!(message.as_ref().unwrap().get_read_state().unwrap(), "10.0");
+        assert_eq!(message.as_ref().unwrap().get_content(), "Above Threshold");
 
         // check after second read before third read
-        controller.poll(time + Duration::microseconds(2500));
+        let message = controller.poll(time + Duration::microseconds(2500));
         assert_eq!(external_output_state.lock().unwrap().clone(), false);
 
+        assert!(message.is_none());
+
         // check after third read when below threshold
-        controller.poll(time + Duration::seconds(3));
+        let message = controller.poll(time + Duration::seconds(3));
         assert_eq!(external_output_state.lock().unwrap().clone(), true);
+
+        assert!(message.is_some());
+        assert_eq!(message.as_ref().unwrap().get_read_state().unwrap(), "0.0");
+        assert_eq!(message.as_ref().unwrap().get_content(), "Below Threshold");
     }
 }

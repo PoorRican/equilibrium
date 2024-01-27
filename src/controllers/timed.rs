@@ -222,24 +222,49 @@ mod tests {
         output.output.deactivate();
 
         // begin polling
-        output.poll(time);
+        let message = output.poll(time);
         assert_eq!(output.output.get_state().unwrap(), false);
 
+        assert!(message.is_none());
+
+        // poll at 5:00AM
         let time = time + Duration::seconds(1);
-        output.poll(time);
+        let message = output.poll(time);
         assert_eq!(output.output.get_state().unwrap(), true);
 
+        assert!(message.is_some());
+        assert!(message.as_ref().unwrap().get_read_state().is_none());
+        assert_eq!(message.as_ref().unwrap().get_content(), "Activated");
+
+        // poll at 5:00AM + 6 hours
         let time = time + Duration::hours(6);
-        output.poll(time);
+        let message = output.poll(time);
         assert_eq!(output.output.get_state().unwrap(), true);
 
+        assert!(message.is_none());
+
+        // poll at 5:00AM + 12 hours - 1 sec
         let time = time + Duration::hours(6) - Duration::seconds(1);
-        output.poll(time);
+        let message = output.poll(time);
         assert_eq!(output.output.get_state().unwrap(), true);
 
+        assert!(message.is_none());
+
+        // poll at 5:00AM + 12 hours
         let time = time + Duration::seconds(1);
-        output.poll(time);
+        let message = output.poll(time);
         assert_eq!(output.output.get_state().unwrap(), false);
+
+        assert!(message.is_some());
+        assert!(message.as_ref().unwrap().get_read_state().is_none());
+        assert_eq!(message.as_ref().unwrap().get_content(), "Deactivated");
+
+        // poll at 5:00AM + 12 hours + 1 sec
+        let time = time + Duration::seconds(1);
+        let message = output.poll(time);
+        assert_eq!(output.output.get_state().unwrap(), false);
+
+        assert!(message.is_none());
     }
 
 }

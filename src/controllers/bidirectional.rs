@@ -416,39 +416,58 @@ mod tests {
         assert!(controller.decrease_output.get_state().is_none());
 
         // check before first read
-        controller.poll(time + Duration::milliseconds(500));
+        let message = controller.poll(time + Duration::milliseconds(500));
         assert!(controller.increase_output.get_state().is_none());
         assert!(controller.decrease_output.get_state().is_none());
 
+        assert!(message.is_none());
+
         // check first read which should be below threshold
-        controller.poll(time + Duration::seconds(1));
+        let message = controller.poll(time + Duration::seconds(1));
         assert_eq!(controller.increase_output.get_state(), Some(true));
         assert_eq!(controller.decrease_output.get_state(), Some(false));
+
+        assert!(message.is_some());
+        assert_eq!(message.as_ref().unwrap().get_read_state().unwrap(), "8.0".to_string());
+        assert_eq!(message.as_ref().unwrap().get_content(), "Below Threshold".to_string());
 
         // check again before second read
-        controller.poll(time + Duration::seconds(1) + Duration::milliseconds(500));
+        let message = controller.poll(time + Duration::seconds(1) + Duration::milliseconds(500));
         assert_eq!(controller.increase_output.get_state(), Some(true));
         assert_eq!(controller.decrease_output.get_state(), Some(false));
 
+        assert!(message.is_none());
+
         // check second read which should be within tolerance
-        controller.poll(time + Duration::seconds(2));
+        let message = controller.poll(time + Duration::seconds(2));
         assert_eq!(controller.increase_output.get_state(), Some(false));
         assert_eq!(controller.decrease_output.get_state(), Some(false));
+
+        assert!(message.is_some());
+        assert_eq!(message.as_ref().unwrap().get_read_state().unwrap(), "10.5".to_string());
+        assert_eq!(message.as_ref().unwrap().get_content(), "Within Tolerance".to_string());
 
         // check again before third read
-        controller.poll(time + Duration::seconds(2) + Duration::milliseconds(500));
+        let message = controller.poll(time + Duration::seconds(2) + Duration::milliseconds(500));
         assert_eq!(controller.increase_output.get_state(), Some(false));
         assert_eq!(controller.decrease_output.get_state(), Some(false));
 
+        assert!(message.is_none());
+
         // check third read which should be above threshold
-        controller.poll(time + Duration::seconds(3));
+        let message = controller.poll(time + Duration::seconds(3));
         assert_eq!(controller.increase_output.get_state(), Some(false));
         assert_eq!(controller.decrease_output.get_state(), Some(true));
+
+        assert!(message.is_some());
+        assert_eq!(message.as_ref().unwrap().get_read_state().unwrap(), "12.0".to_string());
+        assert_eq!(message.as_ref().unwrap().get_content(), "Above Threshold".to_string());
 
         // check again after third read
-        controller.poll(time + Duration::seconds(3) + Duration::milliseconds(500));
+        let message = controller.poll(time + Duration::seconds(3) + Duration::milliseconds(500));
         assert_eq!(controller.increase_output.get_state(), Some(false));
         assert_eq!(controller.decrease_output.get_state(), Some(true));
 
+        assert!(message.is_none());
     }
 }

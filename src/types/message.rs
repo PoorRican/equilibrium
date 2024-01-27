@@ -46,4 +46,12 @@ impl Message {
     pub fn get_controller_name(&self) -> String {
         self.name.clone()
     }
+
+    pub fn get_read_state(&self) -> Option<String> {
+        self.read_state.clone()
+    }
+
+    pub fn get_content(&self) -> String {
+        self.content.clone()
+    }
 }
