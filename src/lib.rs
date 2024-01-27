@@ -16,13 +16,12 @@
 //! ```
 //! use chrono::{Duration, NaiveTime, Utc};
 //! use equilibrium::controllers::{Controller, TimedOutput, Threshold};
-//! use equilibrium::Output;
-//! use equilibrium::Input;
+//! use equilibrium::{Output, Input, ControllerGroup};
 //!
 //! // this represents a grow-light
 //! let time = NaiveTime::from_hms_opt(5, 0, 0).unwrap();
 //! let duration = Duration::hours(8);
-//! let mut grow_light = TimedOutput::new_without_scheduled(
+//! let mut grow_light = TimedOutput::new(
 //!     Output::new(|_| {
 //!        // low-level code would go here
 //!     }),
@@ -41,12 +40,20 @@
 //!     // low-level code would go here
 //!     String::from("79.0")
 //! });
-//! let mut heater_controller = Threshold::new_without_scheduled(
+//! let mut heater_controller = Threshold::new(
 //!     min_temp,
 //!     temp_sensor,
 //!     heater,
 //!     interval
 //! );
+//!
+//! // a group can be used to manage multiple controllers
+//! let mut group = ControllerGroup::new();
+//! group.add_controller(grow_light);
+//! group.add_controller(heater_controller);
+//!
+//! let now = Utc::now();
+//! let messages = group.poll(now);
 //! ```
 //!
 //! # Roadmap
