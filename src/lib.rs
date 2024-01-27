@@ -65,7 +65,7 @@ mod input;
 mod output;
 pub mod controllers;
 mod group;
-mod emitter;
+pub mod emitter;
 
 // re-export types
 pub use input::Input;

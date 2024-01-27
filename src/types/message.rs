@@ -34,12 +34,15 @@ impl Message {
     /// * `content` - The content of the message
     /// * `timestamp` - The timestamp that the event took place
     /// * `read_state` - Sensor read value (if applicable)
-    pub fn new(name: String, content: String, timestamp: DateTime<Utc>, read_state: Option<String>) -> Self {
+    pub fn new<S, O>(name: S, content: S, timestamp: DateTime<Utc>, read_state: O) -> Self
+        where S: Into<String>,
+              O: Into<Option<String>>
+    {
         Self {
-            name,
-            content,
+            name: name.into(),
+            content: content.into(),
             timestamp,
-            read_state
+            read_state: read_state.into(),
         }
     }
 

@@ -36,8 +36,8 @@ mod tests {
     async fn test_emit() {
         let emitter = Emitter::new("http://localhost:8000");
         let messages = vec![
-            Message::new("test_name".to_string(), "value".to_string(), Utc::now(), None),
-            Message::new("test_name".to_string(), "value".to_string(), Utc::now(), None),
+            Message::new("test_name", "value", Utc::now(), None),
+            Message::new("test_name", "value", Utc::now(), None),
         ];
 
         // should fail
@@ -49,8 +49,8 @@ mod tests {
     async fn test_emit_with_server() {
         let emitter = Emitter::new("http://localhost:8000");
         let messages = vec![
-            Message::new("test_name".to_string(), "Test Message".to_string(), Utc::now(), Some("1.0".to_string())),
-            Message::new("test_name".to_string(), "Test Message".to_string(), Utc::now(), None),
+            Message::new("test_name", "Test Message", Utc::now(), "1.0".to_string()),
+            Message::new("test_name", "Test Message", Utc::now(), None),
         ];
 
         // should succeed
