@@ -57,6 +57,10 @@ mod scheduler;
 mod input;
 mod output;
 pub mod controllers;
+mod group;
 
+// re-export types
 pub use input::Input;
 pub use output::Output;
+
+pub use group::ControllerGroup;

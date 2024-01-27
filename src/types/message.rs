@@ -41,4 +41,8 @@ impl Message {
             read_state
         }
     }
+
+    pub fn get_controller_name(&self) -> String {
+        self.name.clone()
+    }
 }

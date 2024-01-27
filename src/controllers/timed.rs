@@ -73,7 +73,7 @@ where F: FnMut(bool) {
 
 
     /// Schedule the first event
-    fn schedule_first<T>(mut self, time: T) -> Self
+    pub fn schedule_first<T>(mut self, time: T) -> Self
         where T: Into<Option<DateTime<Utc>>>
     {
         self.schedule_on(time);
