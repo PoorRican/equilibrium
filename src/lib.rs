@@ -48,9 +48,9 @@
 //! );
 //!
 //! // a group can be used to manage multiple controllers
-//! let mut group = ControllerGroup::new();
-//! group.add_controller(grow_light);
-//! group.add_controller(heater_controller);
+//! let mut group = ControllerGroup::new()
+//!     .add_controller(grow_light)
+//!     .add_controller(heater_controller);
 //!
 //! let now = Utc::now();
 //! let messages = group.poll(now);

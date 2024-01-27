@@ -22,16 +22,37 @@ impl ControllerGroup {
         }
     }
 
-    /// Add a controller to the group
+    /// Builder method for adding a controller to the group
     ///
     /// This method takes ownership of the controller and adds it to the group. The controller can
     /// no longer be accessed directly, but can be polled via the [`Controller`] trait.
     ///
     /// # Arguments
     /// * `controller` - Any struct that implements the [`Controller`] trait
-    pub fn add_controller<C>(&mut self, controller: C) where C: Controller + 'static {
+    ///
+    /// # Returns
+    /// The controller group with the new controller added
+    ///
+    /// # Example
+    /// ```
+    /// use equilibrium::controllers::{Controller, Threshold};
+    ///
+    /// let controller = Threshold::new(
+    ///     70.0,
+    ///     equilibrium::Input::default(),
+    ///     equilibrium::Output::default(),
+    ///     chrono::Duration::minutes(5),
+    /// );
+    ///
+    /// let mut group = equilibrium::ControllerGroup::new()
+    ///     .add_controller(controller);
+    /// ```
+    pub fn add_controller<C>(mut self, controller: C) -> Self
+        where C: Controller + 'static
+    {
         let wrapped = Box::new(controller);
         self.controllers.push(wrapped);
+        self
     }
 
     /// Returns a reference to the controllers in the group
@@ -82,8 +103,6 @@ use super::*;
 
     #[test]
     fn test_add_controller() {
-        let mut group = ControllerGroup::new();
-
         // construct two different controllers
         let controller1 = TimedOutput::new(
             Output::default(),
@@ -99,8 +118,9 @@ use super::*;
         );
 
         // add controllers to group
-        group.add_controller(controller1);
-        group.add_controller(controller2);
+        let group = ControllerGroup::new()
+            .add_controller(controller1)
+            .add_controller(controller2);
 
         // assert that the group has 2 controllers
         assert_eq!(group.get_controllers().len(), 2);
@@ -108,8 +128,6 @@ use super::*;
 
     #[test]
     fn test_poll() {
-        let mut group = ControllerGroup::new();
-
         let now = Utc.with_ymd_and_hms(2021, 1, 1, 4, 59, 59).unwrap();
 
         // construct two different controllers and manually schedule first execution
@@ -130,9 +148,10 @@ use super::*;
         ).schedule_next(now.clone());
         controller2.set_name(threshold_name.clone());
 
-        // add controllers to group
-        group.add_controller(controller1);
-        group.add_controller(controller2);
+        // construct controller
+        let mut group = ControllerGroup::new()
+            .add_controller(controller1)
+            .add_controller(controller2);
 
         // begin to poll the group
         let messages = group.poll(now);
