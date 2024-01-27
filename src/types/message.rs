@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 
 /// A [`Message`] is a named event that is returned for logging.
 ///
@@ -10,7 +11,7 @@ use chrono::{DateTime, Utc};
 /// event that took place
 /// * `timestamp` - The timestamp that the event took place
 /// * `read_state` - Sensor read value (if applicable)
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Message {
     /// The name of the originating device
     name: String,
