@@ -65,10 +65,13 @@ mod input;
 mod output;
 pub mod controllers;
 mod group;
-pub mod emitter;
+mod emitter;
+mod runtime;
 
 // re-export types
 pub use input::Input;
 pub use output::Output;
 
 pub use group::ControllerGroup;
+pub use emitter::Emitter;
+pub use runtime::Runtime;
