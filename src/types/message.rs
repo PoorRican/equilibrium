@@ -54,6 +54,10 @@ impl Message {
         self.read_state.clone()
     }
 
+    pub fn get_timestamp(&self) -> DateTime<Utc> {
+        self.timestamp.clone()
+    }
+
     pub fn get_content(&self) -> String {
         self.content.clone()
     }
