@@ -1,7 +1,17 @@
 [package]
 name = "equilibrium"
-version = "0.1.0"
+version = "0.1.0-alpha"
 edition = "2021"
+description = "A framework for creating distributed control systems"
+readme = "README.md"
+repository = "https://github.com/PoorRican/equilibrium"
+license = "MIT"
+license-file = "LICENSE"
+keywords = ["control", "distributed", "aquaponics", "hydroponics", "bioreactor"]
+categories = ["science", "embedded", "hardware-support"]
+
+[badges]
+maintenance = { status = "actively-developed" }
 
 [dependencies]
 chrono = { version = "0.4.31", features = ["serde"] }

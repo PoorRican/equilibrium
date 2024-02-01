@@ -1,4 +1,4 @@
-//! equilibrium is a framework for creating automated and controlled systems.
+//! equilibrium is a framework for creating distributed control systems.
 //!
 //! It provides a several types of control system paradigms and is agnostic to the
 //! underlying hardware. The intention is to provide a framework that can be used in
@@ -55,10 +55,6 @@
 //! let now = Utc::now();
 //! let messages = group.poll(now);
 //! ```
-//!
-//! # Roadmap
-//! * Create a group that can manage multiple controllers
-//! * Send messages to a message broker
 pub mod types;
 mod scheduler;
 mod input;
